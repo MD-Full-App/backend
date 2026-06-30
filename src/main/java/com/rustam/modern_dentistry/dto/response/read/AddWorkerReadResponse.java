@@ -33,5 +33,6 @@ public class AddWorkerReadResponse {
     String email;
     String address;
     Integer experience;
+    String profilePhotoPath;
     Set<String> permissions;
 }

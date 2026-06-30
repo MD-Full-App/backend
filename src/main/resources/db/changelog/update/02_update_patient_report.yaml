@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-action-status-to-patient-report
+      author: rustam
+      changes:
+        - addColumn:
+            tableName: patient_report
+            columns:
+              - column:
+                  name: action_status
+                  type: VARCHAR(255)

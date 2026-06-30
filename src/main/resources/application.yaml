@@ -30,6 +30,10 @@ spring:
     #          starttls:
     #            enable: true
 
+app:
+  upload:
+    dir: ./media/worker/profile
+
 server:
   port: 5555
   address: 0.0.0.0

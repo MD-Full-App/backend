@@ -8,6 +8,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class PatientReportCriteria {
+    Long patientId;
     String operationName;
     Long teethNo;
     Long startDate;

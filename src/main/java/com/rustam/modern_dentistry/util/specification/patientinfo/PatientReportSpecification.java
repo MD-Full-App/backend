@@ -14,8 +14,14 @@ public class PatientReportSpecification {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
+            if (criteria.getPatientId() != null) {
+                predicates.add(cb.equal(root.get("patientId"), criteria.getPatientId()));
+            }
             if (criteria.getOperationName() != null && !criteria.getOperationName().isEmpty()) {
-                predicates.add(cb.like(root.get("operationName"), "%" + criteria.getOperationName() + "%"));
+                predicates.add(cb.like(
+                        cb.lower(root.get("operationName")),
+                        "%" + criteria.getOperationName().trim().toLowerCase() + "%"
+                ));
             }
             if (criteria.getTeethNo() != null) {
                 predicates.add(cb.equal(root.get("teethNo"), criteria.getTeethNo()));

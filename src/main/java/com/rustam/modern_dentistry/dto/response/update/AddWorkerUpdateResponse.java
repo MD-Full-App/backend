@@ -27,9 +27,11 @@ public class AddWorkerUpdateResponse {
     String degree;
     String phone;
     String phone2;
+    String phone3;
     String homePhone;
     String email;
     String address;
     Integer experience;
+    String profilePhotoPath;
     Set<String> permissions;
 }

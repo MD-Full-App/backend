@@ -47,16 +47,20 @@ public class PatientTreatmentSaveService {
                             BigDecimal discount = basePrice.subtract(finalPrice);
 
                             PatientReport report = PatientReport.builder()
+                                    .patientId(patientTreatment.getPatientPlanMain() != null
+                                            && patientTreatment.getPatientPlanMain().getPatient() != null
+                                            ? patientTreatment.getPatientPlanMain().getPatient().getId() : null)
                                     .planDate(plan.getCreatedDate())
                                     .patientName(patientTreatment.getPatientPlanMain() != null && patientTreatment.getPatientPlanMain().getPatient() != null
-                                            ? patientTreatment.getPatientPlanMain().getPatient().getName() : null)
+                                            ? patientTreatment.getPatientPlanMain().getPatient().getName() + " "
+                                            + patientTreatment.getPatientPlanMain().getPatient().getSurname() : null)
                                     .teethNo(plan.getToothId())
                                     .operationName(item.getOperationName())
                                     .planningDoctorName(plan.getCreatedBy())
                                     .price(basePrice)
                                     .discount(discount.compareTo(BigDecimal.ZERO) > 0 ? discount : BigDecimal.ZERO)
                                     .finalPrice(finalPrice)
-                                    .executionDate(Instant.now().getEpochSecond())
+                                    .executionDate(Instant.now().toEpochMilli())
                                     .executionDoctorName(patientTreatment.getCreatedBy())
                                     .build();
 

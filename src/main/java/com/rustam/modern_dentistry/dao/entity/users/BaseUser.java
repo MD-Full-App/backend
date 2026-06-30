@@ -37,7 +37,14 @@ public class BaseUser {
     UUID id;
     String name;
     String surname;
+    @Column(name = "phone")
     String phone;
+    @Column(name = "phone2")
+    String phone2;
+    @Column(name = "phone3")
+    String phone3;
+    @Column(name = "home_phone")
+    String homePhone;
     String email;
     @Column(unique = true, name = "fin_code")
     String finCode;
@@ -50,6 +57,13 @@ public class BaseUser {
     LocalDate dateOfBirth;
     String password;
     Boolean enabled;
+    @Column(name = "color_code")
+    String colorCode;
+    String degree;
+    String address;
+    Integer experience;
+    @Column(name = "profile_photo_path")
+    String profilePhotoPath;
 
     @ManyToMany(fetch = LAZY)
     @JoinTable(

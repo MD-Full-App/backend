@@ -1,0 +1,32 @@
+databaseChangeLog:
+  - changeSet:
+      id: 02
+      author: rustem-huseynov
+      changes:
+        - addColumn:
+            tableName: base_users
+            columns:
+              - column:
+                  name: phone2
+                  type: VARCHAR(255)
+              - column:
+                  name: phone3
+                  type: VARCHAR(255)
+              - column:
+                  name: home_phone
+                  type: VARCHAR(255)
+              - column:
+                  name: color_code
+                  type: VARCHAR(255)
+              - column:
+                  name: degree
+                  type: VARCHAR(255)
+              - column:
+                  name: address
+                  type: VARCHAR(255)
+              - column:
+                  name: experience
+                  type: INTEGER
+              - column:
+                  name: profile_photo_path
+                  type: VARCHAR(500)

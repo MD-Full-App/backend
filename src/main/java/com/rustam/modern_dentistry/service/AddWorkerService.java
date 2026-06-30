@@ -43,6 +43,12 @@ public class AddWorkerService {
     PasswordEncoder passwordEncoder;
 
     public AddWorkerCreateResponse create(AddWorkerCreateRequest dto) {
+        System.out.println("📥 Backend'ə gələn DTO:");
+        System.out.println("  colorCode: " + dto.getColorCode());
+        System.out.println("  experience: " + dto.getExperience());
+        System.out.println("  address: " + dto.getAddress());
+        System.out.println("  degree: " + dto.getDegree());
+        
         Set<Permission> newPermissions = dto.getPermissions().stream()
                 .map(permissionService::findByName)
                 .collect(Collectors.toSet());
