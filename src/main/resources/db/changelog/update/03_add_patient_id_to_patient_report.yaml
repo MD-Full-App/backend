@@ -1,0 +1,17 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-patient-id-to-patient-report
+      author: codex
+      changes:
+        - addColumn:
+            tableName: patient_report
+            columns:
+              - column:
+                  name: patient_id
+                  type: BIGINT
+        - createIndex:
+            tableName: patient_report
+            indexName: idx_patient_report_patient_id
+            columns:
+              - column:
+                  name: patient_id

@@ -21,6 +21,8 @@ import java.math.BigDecimal;
 @ToString
 public class PatientReport extends CoreEntity {
 
+    @Column(name = "patient_id")
+    Long patientId;
     @Column(name = "plan_date")
     Long planDate;
     @Column(name = "patient_name")
