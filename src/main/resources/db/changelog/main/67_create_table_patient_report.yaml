@@ -1,0 +1,66 @@
+databaseChangeLog:
+  - changeSet:
+      id: 67
+      author: rustam
+      changes:
+        - createTable:
+            tableName: patient_report
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: VARCHAR(255)
+              - column:
+                  name: updated_by
+                  type: VARCHAR(255)
+              - column:
+                  name: deleted_by
+                  type: VARCHAR(255)
+              - column:
+                  name: created_date
+                  type: BIGINT
+              - column:
+                  name: updated_date
+                  type: BIGINT
+              - column:
+                  name: deleted_date
+                  type: BIGINT
+              - column:
+                  name: status
+                  type: VARCHAR(50)
+
+              - column:
+                  name: plan_date
+                  type: BIGINT
+              - column:
+                  name: patient_name
+                  type: VARCHAR(255)
+              - column:
+                  name: teeth_no
+                  type: BIGINT
+              - column:
+                  name: operation_name
+                  type: VARCHAR(255)
+              - column:
+                  name: planning_doctor_name
+                  type: VARCHAR(255)
+              - column:
+                  name: price
+                  type: DECIMAL(19,2)
+              - column:
+                  name: discount
+                  type: DECIMAL(19,2)
+              - column:
+                  name: final_price
+                  type: DECIMAL(19,2)
+              - column:
+                  name: execution_date
+                  type: BIGINT
+              - column:
+                  name: execution_doctor_name
+                  type: VARCHAR(255)
