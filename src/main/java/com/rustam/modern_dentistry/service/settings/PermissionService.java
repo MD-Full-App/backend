@@ -71,8 +71,9 @@ public class PermissionService {
                 .orElseThrow(() -> new NotFoundException("Permission not found: " + id));
     }
 
+    @Transactional
     public List<PermissionResponse> read() {
-        return permissionMapper.toDtos(permissionRepository.findAll());
+        return permissionMapper.toDtos(permissionRepository.findAllWithModulePermissions());
     }
 
     @Transactional
@@ -98,6 +99,7 @@ public class PermissionService {
                 ));
     }
 
+    @Transactional
     public List<PermissionResponse> search(PermissionSearchRequest permissionSearchRequest) {
         List<Permission> permissions = permissionRepository.findAll(PermissionSpecification.filterBy(permissionSearchRequest));
         return permissionMapper.toDtos(permissions);
@@ -108,6 +110,7 @@ public class PermissionService {
         permissionRepository.delete(permission);
     }
 
+    @Transactional
     public PermissionResponse statusUpdated(PermissionStatusUpdatedRequest permissionStatusUpdatedRequest) {
         Permission permission = findById(permissionStatusUpdatedRequest.getId());
         permission.setStatus(permissionStatusUpdatedRequest.getStatus());

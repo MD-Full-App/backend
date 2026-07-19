@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface PermissionRepository extends JpaRepository<Permission,Long>, JpaSpecificationExecutor<Permission> {
@@ -19,4 +20,10 @@ public interface PermissionRepository extends JpaRepository<Permission,Long>, Jp
 """)
     Optional<Permission> findWithModulePermissions(Long id);
 
+    @Query("""
+    SELECT DISTINCT p FROM Permission p
+    LEFT JOIN FETCH p.modulePermissions mp
+    LEFT JOIN FETCH mp.actions
+""")
+    List<Permission> findAllWithModulePermissions();
 }

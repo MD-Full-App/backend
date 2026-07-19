@@ -12,6 +12,9 @@ import java.util.UUID;
 
 public interface PatientReportRepository extends JpaRepository<PatientReport, UUID>, JpaSpecificationExecutor<PatientReport> {
 
+    java.util.List<PatientReport> findAllByExecutionDateBetween(Long start, Long end);
+    java.util.List<PatientReport> findAllByPlanDateBetween(Long start, Long end);
+
     @Query("SELECT new com.rustam.modern_dentistry.dto.response.read.PatientReportReadResponse(" +
             "  r.planDate, " +
             "  r.patientName, " +
