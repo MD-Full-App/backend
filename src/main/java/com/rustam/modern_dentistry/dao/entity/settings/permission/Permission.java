@@ -27,7 +27,7 @@ public class Permission implements GrantedAuthority {
     @Enumerated(EnumType.STRING)
     private Status status;
 
-    @OneToMany(mappedBy = "permission", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "permission", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ModulePermissionEntity> modulePermissions;
 
     @Override

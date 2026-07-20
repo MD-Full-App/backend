@@ -43,6 +43,9 @@ public class AddWorkerService {
     PasswordEncoder passwordEncoder;
 
     public AddWorkerCreateResponse create(AddWorkerCreateRequest dto) {
+        if (dto.getFinCode() != null) {
+            dto.setFinCode(dto.getFinCode().toUpperCase());
+        }
         System.out.println("📥 Backend'ə gələn DTO:");
         System.out.println("  colorCode: " + dto.getColorCode());
         System.out.println("  experience: " + dto.getExperience());
@@ -101,6 +104,9 @@ public class AddWorkerService {
 
     @Transactional
     public AddWorkerUpdateResponse update(AddWorkerUpdateRequest dto) {
+        if (dto.getFinCode() != null) {
+            dto.setFinCode(dto.getFinCode().toUpperCase());
+        }
         BaseUser baseUser = baseUserRepository.findByIdWithPermissions(dto.getId())
                 .orElseThrow(() -> new UserNotFountException("No such user found."));
 
