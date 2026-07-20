@@ -36,6 +36,7 @@ public class PermissionService {
     PermissionMapper permissionMapper;
     UtilService utilService;
 
+    @Transactional
     public PermissionResponse create(PermissionCreateRequest permissionCreateRequest) {
         Permission permission = new Permission();
         permission.setPermissionName(permissionCreateRequest.getPermissionName());
@@ -105,6 +106,7 @@ public class PermissionService {
         return permissionMapper.toDtos(permissions);
     }
 
+    @Transactional
     public void delete(Long id) {
         Permission permission = findById(id);
         permissionRepository.delete(permission);
@@ -118,6 +120,7 @@ public class PermissionService {
         return permissionMapper.toResponse(permission);
     }
 
+    @Transactional
     public PermissionCreateResponse update(PermissionUpdateRequest request) {
         Permission permission = findById(request.getId());
 
@@ -125,15 +128,12 @@ public class PermissionService {
 
         if (request.getPermissions() != null && !request.getPermissions().isEmpty()) {
 
-            Map<Long, ModulePermissionEntity> existingModulesMap = permission.getModulePermissions().stream()
-                    .filter(mp -> mp.getId() != null)
+            Map<String, ModulePermissionEntity> existingModulesMap = permission.getModulePermissions().stream()
+                    .filter(mp -> mp.getModuleUrl() != null)
                     .collect(Collectors.toMap(
-                            ModulePermissionEntity::getId,
+                            ModulePermissionEntity::getModuleUrl,
                             Function.identity(),
-                            (existing, duplicate) -> {
-                                // Əgər istəyirsənsə, burada loq yaz
-                                return existing; // eyni id varsa, mövcudu saxla
-                            }
+                            (existing, duplicate) -> existing
                     ));
 
             List<ModulePermissionEntity> updatedModules = new ArrayList<>();
@@ -141,9 +141,8 @@ public class PermissionService {
             for (ModulePermissionUpdateRequest dto : request.getPermissions()) {
                 ModulePermissionEntity modulePermission;
 
-                if (dto.getModulePermissionId() != null && existingModulesMap.containsKey(dto.getModulePermissionId())) {
-                    modulePermission = existingModulesMap.get(dto.getModulePermissionId());
-                    modulePermission.setModuleUrl(dto.getModuleUrl());
+                if (dto.getModuleUrl() != null && existingModulesMap.containsKey(dto.getModuleUrl())) {
+                    modulePermission = existingModulesMap.get(dto.getModuleUrl());
                     modulePermission.setActions(dto.getActions());
                 } else {
                     modulePermission = ModulePermissionEntity.builder()
