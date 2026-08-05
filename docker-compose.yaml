@@ -38,17 +38,19 @@ services:
     networks:
       - modern-net
 
-#  nginx:
-#    image: nginx:latest
-#    container_name: nginx-proxy
-#    restart: always
-#    ports:
-#      - "80:80"
-#    volumes:
-#      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-#      - /home/media:/home/media:ro
-#    networks:
-#      - modern-net
+  nginx:
+    image: nginx:latest
+    container_name: nginx-proxy
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /home/media:/home/media:ro
+    depends_on:
+      - modern-dentistry
+    networks:
+      - modern-net
 
 networks:
   modern-net:
