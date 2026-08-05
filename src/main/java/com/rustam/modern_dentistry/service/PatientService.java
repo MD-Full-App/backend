@@ -70,7 +70,7 @@ public class PatientService {
                 .genderStatus(patientCreateRequest.getGenderStatus())
                 .priceCategory(priceCategoryService.findByName(patientCreateRequest.getPriceCategoryName()))
                 .specializationCategory(specializationCategoryService.findByName(patientCreateRequest.getSpecializationName()))
-                .registration_date(LocalDate.now())
+                .registrationDate(LocalDate.now())
                 .build();
         patientRepository.save(patient);
         PatientCreateResponse patientCreateResponse = new PatientCreateResponse();

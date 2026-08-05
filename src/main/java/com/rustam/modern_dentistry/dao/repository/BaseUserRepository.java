@@ -54,8 +54,32 @@ public interface BaseUserRepository extends JpaRepository<BaseUser, UUID>, JpaSp
     """)
     boolean existsByUsernameOrEmailOrFinCode(String username, String email, String finCode);
 
+    boolean existsByFinCode(String finCode);
+
+    boolean existsByFinCodeIgnoreCase(String finCode);
+
+    boolean existsByFinCodeAndIdNot(String finCode, UUID id);
+
+    boolean existsByFinCodeIgnoreCaseAndIdNot(String finCode, UUID id);
+
+    boolean existsByUsername(String username);
+
+    boolean existsByUsernameIgnoreCase(String username);
+
+    boolean existsByUsernameAndIdNot(String username, UUID id);
+
+    boolean existsByUsernameIgnoreCaseAndIdNot(String username, UUID id);
+
+    boolean existsByEmail(String email);
+
+    boolean existsByEmailIgnoreCase(String email);
+
+    boolean existsByEmailAndIdNot(String email, UUID id);
+
+    boolean existsByEmailIgnoreCaseAndIdNot(String email, UUID id);
+
     @EntityGraph(attributePaths = "permissions")
-    Optional<BaseUser> findByUsernameOrEmailOrFinCode(String username,String email,String finCode);
+    Optional<BaseUser> findByUsernameOrEmailOrFinCode(String username, String email, String finCode);
 
     List<BaseUser> findAllByPermissionsPermissionNameIn(Set<String> visiblePermissions);
 

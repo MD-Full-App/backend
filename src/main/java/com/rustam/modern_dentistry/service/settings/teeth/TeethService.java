@@ -138,6 +138,13 @@ public class TeethService {
 //    }
 
     public List<Teeth> findAllById(List<Long> teethList) {
-        return teethRepository.findAllById(teethList);
+        if (teethList == null || teethList.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+        List<Long> validTeeth = teethList.stream().filter(java.util.Objects::nonNull).toList();
+        if (validTeeth.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+        return teethRepository.findAllById(validTeeth);
     }
 }

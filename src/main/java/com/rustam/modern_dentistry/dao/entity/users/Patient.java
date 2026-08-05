@@ -66,7 +66,8 @@ public class Patient {
     String homeAddress;
     @Column(name = "work_address")
     String workAddress;
-    LocalDate registration_date;
+    @Column(name = "registration_date")
+    LocalDate registrationDate;
 
     @OneToMany(mappedBy = "patient", cascade = ALL, fetch = LAZY)
     List<Reservation> reservations;

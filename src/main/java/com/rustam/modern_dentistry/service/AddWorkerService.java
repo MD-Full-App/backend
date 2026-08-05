@@ -56,13 +56,25 @@ public class AddWorkerService {
                 .map(permissionService::findByName)
                 .collect(Collectors.toSet());
 
-        utilService.findByUsernameAndEmailAndColorCode(
-                dto.getUsername(),
-                dto.getEmail(),
-                dto.getColorCode()
-        ).ifPresent(user -> {
-            throw new ExistsException("User with these credentials already exists in the system");
-        });
+        if (dto.getFinCode() != null && !dto.getFinCode().trim().isEmpty()) {
+            dto.setFinCode(dto.getFinCode().trim().toUpperCase());
+            if (baseUserRepository.existsByFinCodeIgnoreCase(dto.getFinCode())) {
+                throw new ExistsException("Bu FIN kod artıq sistemdə var");
+            }
+        }
+        if (dto.getUsername() != null && !dto.getUsername().trim().isEmpty()) {
+            dto.setUsername(dto.getUsername().trim());
+            if (baseUserRepository.existsByUsernameIgnoreCase(dto.getUsername())) {
+                throw new ExistsException("Bu istifadəçi adı artıq sistemdə var");
+            }
+        }
+        if (dto.getEmail() != null && !dto.getEmail().trim().isEmpty()) {
+            dto.setEmail(dto.getEmail().trim());
+            if (baseUserRepository.existsByEmailIgnoreCase(dto.getEmail())) {
+                throw new ExistsException("Bu e-poçt ünvanı artıq sistemdə var");
+            }
+        }
+
         BaseUser baseUser = addWorkerMapper.dtoToEntity(new BaseUser(), dto);
         baseUser.setPassword(passwordEncoder.encode(dto.getPassword()));
         baseUser.setPermissions(newPermissions);
@@ -114,13 +126,24 @@ public class AddWorkerService {
                 .map(permissionService::findByName)
                 .collect(Collectors.toSet());
 
-        utilService.findByUsernameAndEmailAndColorCode(
-                dto.getUsername(),
-                dto.getEmail(),
-                dto.getColorCode()
-        ).ifPresent(user -> {
-            throw new ExistsException("User with these credentials already exists in the system");
-        });
+        if (dto.getFinCode() != null && !dto.getFinCode().trim().isEmpty()) {
+            dto.setFinCode(dto.getFinCode().trim().toUpperCase());
+            if (baseUserRepository.existsByFinCodeIgnoreCaseAndIdNot(dto.getFinCode(), dto.getId())) {
+                throw new ExistsException("Bu FIN kod artıq sistemdə var");
+            }
+        }
+        if (dto.getUsername() != null && !dto.getUsername().trim().isEmpty()) {
+            dto.setUsername(dto.getUsername().trim());
+            if (baseUserRepository.existsByUsernameIgnoreCaseAndIdNot(dto.getUsername(), dto.getId())) {
+                throw new ExistsException("Bu istifadəçi adı artıq sistemdə var");
+            }
+        }
+        if (dto.getEmail() != null && !dto.getEmail().trim().isEmpty()) {
+            dto.setEmail(dto.getEmail().trim());
+            if (baseUserRepository.existsByEmailIgnoreCaseAndIdNot(dto.getEmail(), dto.getId())) {
+                throw new ExistsException("Bu e-poçt ünvanı artıq sistemdə var");
+            }
+        }
         BaseUser entityUpdate = addWorkerMapper.dtoToEntityUpdate(baseUser, dto);
         baseUser.setPermissions(newPermissions);
         baseUser.setPassword(passwordEncoder.encode(dto.getPassword()));

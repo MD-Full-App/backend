@@ -49,8 +49,14 @@ public class FileService {
     }
 
     public String getNewFileName(MultipartFile file, String fileNameStart) {
-        var originalFileName = file.getOriginalFilename();
-        var dotIndex = StringUtils.cleanPath(Objects.requireNonNull(originalFileName)).lastIndexOf('.');
+        var originalFileName = file != null ? file.getOriginalFilename() : null;
+        if (originalFileName == null || !originalFileName.contains(".")) {
+            return fileNameStart + UUID.randomUUID() + ".jpg";
+        }
+        var dotIndex = StringUtils.cleanPath(originalFileName).lastIndexOf('.');
+        if (dotIndex < 0) {
+            return fileNameStart + UUID.randomUUID() + ".jpg";
+        }
         var fileExtension = originalFileName.substring(dotIndex);
         return fileNameStart + UUID.randomUUID() + fileExtension;
     }
