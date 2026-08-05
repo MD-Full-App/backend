@@ -2,6 +2,7 @@ package com.rustam.modern_dentistry.dao.repository;
 
 
 import com.rustam.modern_dentistry.dao.entity.GeneralCalendar;
+import com.rustam.modern_dentistry.dao.entity.enums.status.Appointment;
 import com.rustam.modern_dentistry.dao.entity.enums.status.Room;
 import com.rustam.modern_dentistry.dto.response.read.SelectingDoctorViewingPatientResponse;
 import com.rustam.modern_dentistry.dto.response.read.SelectingPatientToReadResponse;
@@ -11,12 +12,17 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 public interface GeneralCalendarRepository extends JpaRepository<GeneralCalendar,Long> {
+
+    long countByDateBetween(LocalDate start, LocalDate end);
+
+    long countByDateBetweenAndAppointment(LocalDate start, LocalDate end, Appointment appointment);
     @Query("""
     SELECT new com.rustam.modern_dentistry.dto.response.read.SelectingDoctorViewingPatientResponse(
         g.patient.name, g.appointment, g.date, g.time, g.period, g.cabinet.cabinetName

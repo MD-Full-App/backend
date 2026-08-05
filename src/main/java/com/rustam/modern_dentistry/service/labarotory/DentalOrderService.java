@@ -55,11 +55,11 @@ public class DentalOrderService {
         List<MultipartFile> processedFiles = new ArrayList<>();
         try {
             var entity = dentalOrderMapper.toEntity(request);
-            var teeth = teethService.findAllById(request.getTeethList());
-            var doctor = utilService.findByBaseUserId(request.getDoctorId());
-            var technician = technicianService.getTechnicianById(request.getTechnicianId());
-            var patient = utilService.findByPatientId(request.getPatientId());
-            var toothDetails = getToothDetails(request.getToothDetailIds(), entity);
+            List<com.rustam.modern_dentistry.dao.entity.settings.teeth.Teeth> teeth = request.getTeethList() != null && !request.getTeethList().isEmpty() ? teethService.findAllById(request.getTeethList()) : Collections.emptyList();
+            var doctor = request.getDoctorId() != null && !request.getDoctorId().isBlank() ? utilService.findByBaseUserId(request.getDoctorId()) : null;
+            var technician = request.getTechnicianId() != null ? technicianService.getTechnicianById(request.getTechnicianId()) : null;
+            var patient = request.getPatientId() != null ? utilService.findByPatientId(request.getPatientId()) : null;
+            List<DentalOrderToothDetail> toothDetails = request.getToothDetailIds() != null ? getToothDetails(request.getToothDetailIds(), entity) : Collections.emptyList();
             entity.setTeethList(teeth);
             entity.setBaseUser(doctor);
             entity.setTechnician(technician);
@@ -327,49 +327,39 @@ private MultipartFile convertBase64ToMultipartFile(String base64String) {
 
         List<DentalOrderToothDetail> toothDetails = new ArrayList<>();
 
-        // Collect all IDs
+        // Collect all non-null IDs
         Set<Long> colorIds = new HashSet<>();
         Set<Long> metalIds = new HashSet<>();
         Set<Long> ceramicIds = new HashSet<>();
 
         for (var detailReq : request) {
-            colorIds.add(detailReq.getColorId());
-            metalIds.add(detailReq.getMetalId());
-            ceramicIds.add(detailReq.getCeramicId());
+            if (detailReq.getColorId() != null) colorIds.add(detailReq.getColorId());
+            if (detailReq.getMetalId() != null) metalIds.add(detailReq.getMetalId());
+            if (detailReq.getCeramicId() != null) ceramicIds.add(detailReq.getCeramicId());
         }
 
         // Fetch from the DB in bulk
-        Map<Long, Color> colorMap = colorRepository.findAllById(colorIds)
-                .stream().collect(Collectors.toMap(Color::getId, Function.identity()));
-        Map<Long, Metal> metalMap = metalRepository.findAllById(metalIds)
-                .stream().collect(Collectors.toMap(Metal::getId, Function.identity()));
-        Map<Long, Ceramic> ceramicMap = ceramicRepository.findAllById(ceramicIds)
-                .stream().collect(Collectors.toMap(Ceramic::getId, Function.identity()));
+        Map<Long, Color> colorMap = colorIds.isEmpty() ? Collections.emptyMap() :
+                colorRepository.findAllById(colorIds).stream().collect(Collectors.toMap(Color::getId, Function.identity()));
+        Map<Long, Metal> metalMap = metalIds.isEmpty() ? Collections.emptyMap() :
+                metalRepository.findAllById(metalIds).stream().collect(Collectors.toMap(Metal::getId, Function.identity()));
+        Map<Long, Ceramic> ceramicMap = ceramicIds.isEmpty() ? Collections.emptyMap() :
+                ceramicRepository.findAllById(ceramicIds).stream().collect(Collectors.toMap(Ceramic::getId, Function.identity()));
 
-        // Now, for each detail, we add the corresponding objects
+        // For each detail, assign present objects
         for (var detailReq : request) {
+            Color color = detailReq.getColorId() != null ? colorMap.get(detailReq.getColorId()) : null;
+            Metal metal = detailReq.getMetalId() != null ? metalMap.get(detailReq.getMetalId()) : null;
+            Ceramic ceramic = detailReq.getCeramicId() != null ? ceramicMap.get(detailReq.getCeramicId()) : null;
 
-            Color color = colorMap.get(detailReq.getColorId());
-            if (color == null) {
-                throw new NotFoundException("Color not found with id: " + detailReq.getColorId());
+            if (color != null || metal != null || ceramic != null) {
+                DentalOrderToothDetail detail = new DentalOrderToothDetail();
+                detail.setDentalOrder(entity);
+                detail.setColor(color);
+                detail.setMetal(metal);
+                detail.setCeramic(ceramic);
+                toothDetails.add(detail);
             }
-
-            Metal metal = metalMap.get(detailReq.getMetalId());
-            if (metal == null) {
-                throw new NotFoundException("Metal not found with id: " + detailReq.getMetalId());
-            }
-
-            Ceramic ceramic = ceramicMap.get(detailReq.getCeramicId());
-            if (ceramic == null) {
-                throw new NotFoundException("Ceramic not found with id: " + detailReq.getCeramicId());
-            }
-
-            DentalOrderToothDetail detail = new DentalOrderToothDetail();
-            detail.setDentalOrder(entity);
-            detail.setColor(color);
-            detail.setMetal(metal);
-            detail.setCeramic(ceramic);
-            toothDetails.add(detail);
         }
 
         return toothDetails;

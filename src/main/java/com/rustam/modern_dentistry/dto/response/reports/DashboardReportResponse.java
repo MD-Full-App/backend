@@ -22,6 +22,14 @@ public class DashboardReportResponse {
     private int newPatients;
     private double noShowRate;
     private BigDecimal agingReceivables;
+    private BigDecimal agingReceivables030;
+    private int agingPatients030;
+    private BigDecimal agingReceivables3160;
+    private int agingPatients3160;
+    private BigDecimal agingReceivables6190;
+    private int agingPatients6190;
+    private BigDecimal agingReceivables90Plus;
+    private int agingPatients90Plus;
 
     private List<CollectionsChartItem> collectionsChart;
     private List<DoctorProductionItem> doctorsProduction;

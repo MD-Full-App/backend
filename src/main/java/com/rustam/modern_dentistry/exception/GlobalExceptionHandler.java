@@ -158,6 +158,29 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<ExceptionResponseMessages> handleDataIntegrityViolationException(org.springframework.dao.DataIntegrityViolationException ex) {
+        log.error("Database constraint violation exception: ", ex);
+        String msg = ex.getMessage() != null ? ex.getMessage() : "";
+        String rootMsg = ex.getRootCause() != null ? ex.getRootCause().getMessage() : "";
+        String fullMsg = (msg + " " + rootMsg).toLowerCase();
+
+        String userFriendlyMessage = "Məlumat bazasında təkrar məlumat xətası baş verdi.";
+
+        if (fullMsg.contains("fin_code") || fullMsg.contains("fincode") || fullMsg.contains("fin_code_key")) {
+            userFriendlyMessage = "Bu FIN kod artıq sistemdə var";
+        } else if (fullMsg.contains("username") || fullMsg.contains("username_key")) {
+            userFriendlyMessage = "Bu istifadəçi adı artıq sistemdə var";
+        } else if (fullMsg.contains("email") || fullMsg.contains("email_key")) {
+            userFriendlyMessage = "Bu e-poçt ünvanı artıq sistemdə var";
+        }
+
+        return new ResponseEntity<>(
+                new ExceptionResponseMessages(ex.getClass().getName(), userFriendlyMessage, HttpStatus.CONFLICT),
+                HttpStatus.CONFLICT
+        );
+    }
+
     @ExceptionHandler(IncorrectPasswordException.class)
     public ResponseEntity<ExceptionResponseMessages> incorrectPasswordException(IncorrectPasswordException ex) {
         return new ResponseEntity<>(
@@ -197,14 +220,21 @@ public class GlobalExceptionHandler {
         }
         return new ResponseEntity<>(errors, HttpStatus.UNPROCESSABLE_ENTITY);
     }
+    @ExceptionHandler(org.springframework.web.HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ExceptionResponseMessages> handleMethodNotSupported(org.springframework.web.HttpRequestMethodNotSupportedException ex) {
+        return new ResponseEntity<>(
+                new ExceptionResponseMessages(ex.getClass().getName(), "Bu HTTP metodu dəstəklənmir: " + ex.getMethod(), HttpStatus.METHOD_NOT_ALLOWED),
+                HttpStatus.METHOD_NOT_ALLOWED
+        );
+    }
+
     // For unhandled exceptions:
     @ExceptionHandler(value = Exception.class)
     public ResponseEntity<ExceptionResponseMessages> generalExceptionHandler(Exception ex){
-        System.out.println("For unhandled exceptions");
-        System.out.println(ex.getClass());
+        log.error("Unhandled exception occurred: ", ex);
         return new ResponseEntity<>(
-                new ExceptionResponseMessages(ex.getClass().getName(), ex.getMessage(), HttpStatus.METHOD_NOT_ALLOWED),
-                HttpStatus.METHOD_NOT_ALLOWED
+                new ExceptionResponseMessages(ex.getClass().getName(), ex.getMessage() != null ? ex.getMessage() : "Daxili server xətası baş verdi.", HttpStatus.INTERNAL_SERVER_ERROR),
+                HttpStatus.INTERNAL_SERVER_ERROR
         );
     }
 }

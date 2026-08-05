@@ -11,6 +11,7 @@ public class DetailedReportCriteria {
     String plannerDoctor;
     String executorDoctor;
     String operationName;
+    String category;
     Long startDate;
     Long endDate;
 }
