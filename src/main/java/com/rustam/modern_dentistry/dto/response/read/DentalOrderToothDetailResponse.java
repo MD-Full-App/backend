@@ -18,4 +18,9 @@ public class DentalOrderToothDetailResponse {
     String metalName;
     Long ceramicId;
     String ceramicName;
+    /**
+     * Dişin hissəsi: "CROWN", "MIDDLE", "GUM" — optional (köhnə qeydlər üçün null)
+     */
+    String toothSection;
 }
+

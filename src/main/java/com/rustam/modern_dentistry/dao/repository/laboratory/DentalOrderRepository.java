@@ -2,14 +2,14 @@ package com.rustam.modern_dentistry.dao.repository.laboratory;
 
 import com.rustam.modern_dentistry.dao.entity.laboratory.DentalOrder;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface DentalOrderRepository extends JpaRepository<DentalOrder, Long> {
+public interface DentalOrderRepository extends JpaRepository<DentalOrder, Long>, JpaSpecificationExecutor<DentalOrder> {
     // findById üçün
     @Query("""
                 SELECT DISTINCT do FROM DentalOrder do

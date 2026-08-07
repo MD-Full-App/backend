@@ -10,16 +10,23 @@ import com.rustam.modern_dentistry.dao.repository.patient_info.PaymentRepository
 import com.rustam.modern_dentistry.dao.repository.BaseUserRepository;
 import com.rustam.modern_dentistry.dao.repository.GeneralCalendarRepository;
 import com.rustam.modern_dentistry.dao.repository.PatientRepository;
+import com.rustam.modern_dentistry.dao.entity.laboratory.DentalOrder;
+import com.rustam.modern_dentistry.dao.repository.laboratory.DentalOrderRepository;
 import com.rustam.modern_dentistry.dto.request.criteria.DetailedReportCriteria;
 import com.rustam.modern_dentistry.dto.response.excel.DetailedReportExcelResponse;
 import com.rustam.modern_dentistry.dto.response.excel.PaymentExcelResponse;
+import com.rustam.modern_dentistry.dto.response.excel.LaboratoryReportExcelResponse;
 import com.rustam.modern_dentistry.dto.response.read.PatientReportReadResponse;
+import com.rustam.modern_dentistry.dto.response.read.TechnicianOrderResponse;
 import com.rustam.modern_dentistry.dto.response.reports.*;
+import com.rustam.modern_dentistry.mapper.laboratory.DentalOrderMapper;
 import com.rustam.modern_dentistry.util.ExcelUtil;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,6 +53,8 @@ public class ReportsService {
     private final BaseUserRepository baseUserRepository;
     private final GeneralCalendarRepository generalCalendarRepository;
     private final PatientRepository patientRepository;
+    private final DentalOrderRepository dentalOrderRepository;
+    private final DentalOrderMapper dentalOrderMapper;
 
     @Transactional(readOnly = true)
     public DashboardReportResponse getDashboardReport(String period, String fromDateStr, String toDateStr) {
@@ -485,5 +494,167 @@ public class ReportsService {
         }
 
         return new long[]{start, end};
+    }
+
+    private Specification<DentalOrder> buildLaboratoryOrderSpec(
+            String period, String fromDateStr, String toDateStr,
+            String status, String category, String search) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            long[] range = getStartAndEndTimestamps(period, fromDateStr, toDateStr);
+            LocalDate start = Instant.ofEpochMilli(range[0]).atZone(ZoneId.systemDefault()).toLocalDate();
+            LocalDate end = Instant.ofEpochMilli(range[1]).atZone(ZoneId.systemDefault()).toLocalDate();
+            predicates.add(cb.between(root.get("checkDate"), start, end));
+
+            if (status != null && !status.trim().isEmpty() && !"all".equalsIgnoreCase(status)) {
+                try {
+                    predicates.add(cb.equal(root.get("dentalWorkStatus"), com.rustam.modern_dentistry.dao.entity.enums.DentalWorkStatus.valueOf(status.trim().toUpperCase())));
+                } catch (Exception ignored) {}
+            }
+
+            if (category != null && !category.trim().isEmpty() && !"all".equalsIgnoreCase(category)) {
+                try {
+                    predicates.add(cb.equal(root.get("dentalWorkType"), com.rustam.modern_dentistry.dao.entity.enums.DentalWorkType.valueOf(category.trim().toUpperCase())));
+                } catch (Exception ignored) {}
+            }
+
+            if (search != null && !search.trim().isEmpty()) {
+                String searchPattern = "%" + search.trim().toLowerCase() + "%";
+                Predicate patientName = cb.like(cb.lower(root.get("patient").get("name")), searchPattern);
+                Predicate patientSurname = cb.like(cb.lower(root.get("patient").get("surname")), searchPattern);
+                Predicate doctorName = cb.like(cb.lower(root.get("baseUser").get("name")), searchPattern);
+                Predicate doctorSurname = cb.like(cb.lower(root.get("baseUser").get("surname")), searchPattern);
+                Predicate techName = cb.like(cb.lower(root.get("technician").get("name")), searchPattern);
+                Predicate techSurname = cb.like(cb.lower(root.get("technician").get("surname")), searchPattern);
+                Predicate desc = cb.like(cb.lower(root.get("description")), searchPattern);
+
+                predicates.add(cb.or(patientName, patientSurname, doctorName, doctorSurname, techName, techSurname, desc));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    @Transactional(readOnly = true)
+    public LaboratoryReportResponse getLaboratoryReport(
+            String period, String fromDateStr, String toDateStr,
+            String status, String category, String search,
+            int pageVal, int sizeVal) {
+
+        Specification<DentalOrder> spec = buildLaboratoryOrderSpec(period, fromDateStr, toDateStr, status, category, search);
+
+        List<DentalOrder> allMatched = dentalOrderRepository.findAll(spec);
+
+        Pageable pageable = PageRequest.of(pageVal, sizeVal, Sort.by("checkDate").descending());
+        Page<DentalOrder> page = dentalOrderRepository.findAll(spec, pageable);
+
+        page.getContent().forEach(order -> {
+            if (order.getToothDetails() != null) {
+                order.getToothDetails().size();
+            }
+            if (order.getTeethList() != null) {
+                order.getTeethList().size();
+            }
+        });
+
+        long totalOrders = allMatched.size();
+        BigDecimal totalAmount = allMatched.stream()
+                .map(DentalOrder::getPrice)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal avgAmount = totalOrders > 0
+                ? totalAmount.divide(BigDecimal.valueOf(totalOrders), 2, RoundingMode.HALF_UP)
+                : BigDecimal.ZERO;
+
+        long completedOrders = allMatched.stream()
+                .filter(o -> o.getDentalWorkStatus() == com.rustam.modern_dentistry.dao.entity.enums.DentalWorkStatus.READY)
+                .count();
+
+        Map<String, Long> statusBreakdown = allMatched.stream()
+                .filter(o -> o.getDentalWorkStatus() != null)
+                .collect(Collectors.groupingBy(o -> o.getDentalWorkStatus().name(), Collectors.counting()));
+
+        Map<String, Long> categoryBreakdown = allMatched.stream()
+                .filter(o -> o.getDentalWorkType() != null)
+                .collect(Collectors.groupingBy(o -> o.getDentalWorkType().name(), Collectors.counting()));
+
+        Map<String, Long> technicianBreakdown = allMatched.stream()
+                .filter(o -> o.getTechnician() != null)
+                .collect(Collectors.groupingBy(
+                        o -> o.getTechnician().getName() + " " + o.getTechnician().getSurname(),
+                        Collectors.counting()
+                ));
+
+        List<CollectionsChartItem> timelineData = getLaboratoryTimelineData(allMatched, period);
+
+        List<TechnicianOrderResponse> content = page.getContent().stream()
+                .map(dentalOrderMapper::toResponse)
+                .collect(Collectors.toList());
+
+        return LaboratoryReportResponse.builder()
+                .totalOrders(totalOrders)
+                .totalAmount(totalAmount)
+                .avgAmount(avgAmount)
+                .completedOrders(completedOrders)
+                .statusBreakdown(statusBreakdown)
+                .categoryBreakdown(categoryBreakdown)
+                .technicianBreakdown(technicianBreakdown)
+                .timelineData(timelineData)
+                .content(content)
+                .page(page.getNumber())
+                .totalPages(page.getTotalPages())
+                .totalElements(page.getTotalElements())
+                .build();
+    }
+
+    private List<CollectionsChartItem> getLaboratoryTimelineData(List<DentalOrder> orders, String period) {
+        DateTimeFormatter formatter;
+        if ("bu_hefte".equalsIgnoreCase(period)) {
+            formatter = DateTimeFormatter.ofPattern("EEE", new Locale("az"));
+        } else if ("bu_il".equalsIgnoreCase(period)) {
+            formatter = DateTimeFormatter.ofPattern("MMM", new Locale("az"));
+        } else {
+            formatter = DateTimeFormatter.ofPattern("MMM dd", new Locale("az"));
+        }
+
+        Map<String, Long> grouped = orders.stream()
+                .filter(o -> o.getCheckDate() != null)
+                .collect(Collectors.groupingBy(
+                        o -> o.getCheckDate().format(formatter),
+                        TreeMap::new,
+                        Collectors.counting()
+                ));
+
+        return grouped.entrySet().stream()
+                .map(e -> new CollectionsChartItem(e.getKey(), BigDecimal.valueOf(e.getValue())))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public ByteArrayInputStream exportLaboratoryReportsExcel(
+            String period, String fromDateStr, String toDateStr,
+            String status, String category, String search) {
+
+        Specification<DentalOrder> spec = buildLaboratoryOrderSpec(period, fromDateStr, toDateStr, status, category, search);
+        List<DentalOrder> orders = dentalOrderRepository.findAll(spec);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+
+        List<LaboratoryReportExcelResponse> excelData = orders.stream()
+                .map(o -> LaboratoryReportExcelResponse.builder()
+                        .id(o.getId())
+                        .checkDate(o.getCheckDate() != null ? o.getCheckDate().format(formatter) : "")
+                        .deliveryDate(o.getDeliveryDate() != null ? o.getDeliveryDate().format(formatter) : "")
+                        .doctorName(o.getBaseUser() != null ? (o.getBaseUser().getName() + " " + o.getBaseUser().getSurname()) : "")
+                        .technicianName(o.getTechnician() != null ? (o.getTechnician().getName() + " " + o.getTechnician().getSurname()) : "")
+                        .patientName(o.getPatient() != null ? (o.getPatient().getName() + " " + o.getPatient().getSurname()) : "")
+                        .dentalWorkType(o.getDentalWorkType() != null ? o.getDentalWorkType().name() : "")
+                        .dentalWorkStatus(o.getDentalWorkStatus() != null ? o.getDentalWorkStatus().name() : "")
+                        .price(o.getPrice() != null ? o.getPrice() : BigDecimal.ZERO)
+                        .build())
+                .collect(Collectors.toList());
+
+        return ExcelUtil.dataToExcel(excelData, LaboratoryReportExcelResponse.class);
     }
 }

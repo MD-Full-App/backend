@@ -11,4 +11,8 @@ public class DentalOrderToothDetailIds {
     Long colorId;
     Long metalId;
     Long ceramicId;
+    /**
+     * Dişin hissəsi: "CROWN", "MIDDLE", "GUM" — optional
+     */
+    String toothSection;
 }

@@ -48,16 +48,15 @@ public class DentalOrderMapper {
                 .dentalWorkStatus(o.getDentalWorkStatus())
                 .price(o.getPrice())
                 .toothDetails(o.getToothDetails().stream().map(
-                        toothDetail -> {
-                            return DentalOrderToothDetailResponse.builder()
-                                    .colorId(toothDetail.getColor().getId())
-                                    .colorName(toothDetail.getColor().getName())
-                                    .metalId(toothDetail.getMetal().getId())
-                                    .metalName(toothDetail.getMetal().getName())
-                                    .ceramicId(toothDetail.getCeramic().getId())
-                                    .ceramicName(toothDetail.getCeramic().getName())
-                                    .build();
-                        }
+                        toothDetail -> DentalOrderToothDetailResponse.builder()
+                                .colorId(toothDetail.getColor() != null ? toothDetail.getColor().getId() : null)
+                                .colorName(toothDetail.getColor() != null ? toothDetail.getColor().getName() : null)
+                                .metalId(toothDetail.getMetal() != null ? toothDetail.getMetal().getId() : null)
+                                .metalName(toothDetail.getMetal() != null ? toothDetail.getMetal().getName() : null)
+                                .ceramicId(toothDetail.getCeramic() != null ? toothDetail.getCeramic().getId() : null)
+                                .ceramicName(toothDetail.getCeramic() != null ? toothDetail.getCeramic().getName() : null)
+                                .toothSection(toothDetail.getToothSection())
+                                .build()
                 ).toList())
                 .teethList(o.getTeethList().stream().map(
                         tooth -> {

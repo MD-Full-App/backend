@@ -358,6 +358,7 @@ private MultipartFile convertBase64ToMultipartFile(String base64String) {
                 detail.setColor(color);
                 detail.setMetal(metal);
                 detail.setCeramic(ceramic);
+                detail.setToothSection(detailReq.getToothSection()); // CROWN / MIDDLE / GUM
                 toothDetails.add(detail);
             }
         }
