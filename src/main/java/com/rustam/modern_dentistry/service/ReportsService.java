@@ -569,7 +569,9 @@ public class ReportsService {
                 : BigDecimal.ZERO;
 
         long completedOrders = allMatched.stream()
-                .filter(o -> o.getDentalWorkStatus() == com.rustam.modern_dentistry.dao.entity.enums.DentalWorkStatus.READY)
+                .filter(o -> o.getDentalWorkStatus() == com.rustam.modern_dentistry.dao.entity.enums.DentalWorkStatus.READY
+                        || o.getDentalWorkStatus() == com.rustam.modern_dentistry.dao.entity.enums.DentalWorkStatus.RECEIVED_FROM_TECHNICIAN
+                        || o.getDentalWorkStatus() == com.rustam.modern_dentistry.dao.entity.enums.DentalWorkStatus.SENT_TO_DOCTOR)
                 .count();
 
         Map<String, Long> statusBreakdown = allMatched.stream()
