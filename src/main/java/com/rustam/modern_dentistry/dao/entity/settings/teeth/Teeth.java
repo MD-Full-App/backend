@@ -32,10 +32,12 @@ public class Teeth {
     @Enumerated(EnumType.STRING)
     ToothLocation toothLocation;
 
+    @Builder.Default
     @OneToMany(mappedBy = "teeth", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     List<TeethExamination> toothExaminations = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "teeth", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     List<TeethOperation> toothOperations = new ArrayList<>();

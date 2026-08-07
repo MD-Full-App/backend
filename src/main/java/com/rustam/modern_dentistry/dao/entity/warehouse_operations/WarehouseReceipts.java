@@ -45,6 +45,7 @@ public class WarehouseReceipts {
 
     String groupId;
 
+    @Builder.Default
     @OneToMany(mappedBy = "warehouseReceipts", cascade = CascadeType.ALL)
     List<WarehouseRemovalProduct> warehouseRemovalProducts = new ArrayList<>();
 

@@ -13,9 +13,11 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.USE_DEFAULTS;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PageCriteria {
+    @Builder.Default
     @JsonInclude(USE_DEFAULTS)
     private Integer page = 0;
 
+    @Builder.Default
     @JsonInclude(USE_DEFAULTS)
     private Integer count = 10;
 }

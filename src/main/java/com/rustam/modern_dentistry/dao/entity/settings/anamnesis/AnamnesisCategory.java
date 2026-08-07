@@ -29,6 +29,7 @@ public class AnamnesisCategory {
     String name;
     Status status;
 
+    @Builder.Default
     @OneToMany(
             cascade = ALL,
             mappedBy = "anamnesisCategory",
