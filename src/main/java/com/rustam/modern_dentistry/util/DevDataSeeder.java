@@ -18,6 +18,10 @@ import com.rustam.modern_dentistry.dao.repository.patient_info.PatientReportRepo
 import com.rustam.modern_dentistry.dao.repository.patient_info.PaymentRepository;
 import com.rustam.modern_dentistry.dao.repository.settings.CabinetRepository;
 import com.rustam.modern_dentistry.dao.repository.settings.PermissionRepository;
+import com.rustam.modern_dentistry.dao.repository.settings.operations.OperationTypeRepository;
+import com.rustam.modern_dentistry.dao.repository.settings.operations.OperationTypeItemRepository;
+import com.rustam.modern_dentistry.dao.entity.settings.operations.OpType;
+import com.rustam.modern_dentistry.dao.entity.settings.operations.OpTypeItem;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -46,16 +50,20 @@ public class DevDataSeeder implements CommandLineRunner {
     private final PermissionRepository permissionRepository;
     private final CabinetRepository cabinetRepository;
     private final PasswordEncoder passwordEncoder;
+    private final OperationTypeRepository operationTypeRepository;
+    private final OperationTypeItemRepository operationTypeItemRepository;
 
     @Override
     public void run(String... args) {
         log.info("Checking database seeder...");
+        seedOperationTypesAndItems();
         if (patientRepository.count() > 0) {
             log.info("Database already seeded. Skipping seeder.");
             return;
         }
 
         log.info("Seeding database with mock clinical data for Reports Page...");
+
 
         // 1. Permissions
         Permission doctorPermission = permissionRepository.findByPermissionName("DOCTOR")
@@ -368,5 +376,44 @@ public class DevDataSeeder implements CommandLineRunner {
 
         patientReportRepository.saveAll(Arrays.asList(rep1, rep2, rep3, rep4));
         log.info("Database successfully seeded!");
+    }
+
+    private void seedOperationTypesAndItems() {
+        if (operationTypeRepository.count() == 0) {
+            log.info("Seeding Operation Types and Items...");
+
+            OpType toothCategory = OpType.builder()
+                    .categoryName("Diş")
+                    .categoryCode("DIS")
+                    .colorSelection(true)
+                    .implantSelection(true)
+                    .status(Status.ACTIVE)
+                    .build();
+
+            toothCategory = operationTypeRepository.save(toothCategory);
+
+            String[] operations = {
+                "Diş çəkimi",
+                "Diş təmizlənməsi",
+                "Diş müalicəsi",
+                "Diş protezləşdirilməsi",
+                "Diş implantı",
+                "Diş bərpası",
+                "Digər"
+            };
+
+            List<OpTypeItem> items = new ArrayList<>();
+            for (int i = 0; i < operations.length; i++) {
+                items.add(OpTypeItem.builder()
+                        .operationName(operations[i])
+                        .operationCode("DIS_" + (i + 1))
+                        .status(Status.ACTIVE)
+                        .amount(BigDecimal.valueOf(100.00 + (i * 50)))
+                        .opType(toothCategory)
+                        .build());
+            }
+            operationTypeItemRepository.saveAll(items);
+            log.info("Operation Types and Items seeded successfully!");
+        }
     }
 }

@@ -74,4 +74,34 @@ public class ReportsController {
                 .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                 .body(new InputStreamResource(in));
     }
+
+    @GetMapping("/laboratory")
+    public ResponseEntity<com.rustam.modern_dentistry.dto.response.reports.LaboratoryReportResponse> getLaboratoryReport(
+            @RequestParam(value = "period", defaultValue = "bu_ay") String period,
+            @RequestParam(value = "fromDate", required = false) String fromDate,
+            @RequestParam(value = "toDate", required = false) String toDate,
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "category", required = false) String category,
+            @RequestParam(value = "search", required = false) String search,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
+        return ResponseEntity.ok(reportsService.getLaboratoryReport(period, fromDate, toDate, status, category, search, page, size));
+    }
+
+    @RequestMapping(value = "/export/laboratory", method = {RequestMethod.GET, RequestMethod.POST})
+    public ResponseEntity<Resource> exportLaboratory(
+            @RequestParam(value = "period", defaultValue = "bu_ay") String period,
+            @RequestParam(value = "fromDate", required = false) String fromDate,
+            @RequestParam(value = "toDate", required = false) String toDate,
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "category", required = false) String category,
+            @RequestParam(value = "search", required = false) String search) {
+        ByteArrayInputStream in = reportsService.exportLaboratoryReportsExcel(period, fromDate, toDate, status, category, search);
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Disposition", "attachment; filename=laboratory_reports.xlsx");
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(new InputStreamResource(in));
+    }
 }

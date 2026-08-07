@@ -6,8 +6,6 @@ import com.rustam.modern_dentistry.dao.entity.settings.Metal;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.List;
-
 import static jakarta.persistence.FetchType.LAZY;
 import static jakarta.persistence.GenerationType.IDENTITY;
 
@@ -31,6 +29,13 @@ public class DentalOrderToothDetail {
 
     @ManyToOne(fetch = LAZY)
     Ceramic ceramic;
+
+    /**
+     * Dişin hansı hissəsinə aid rəng: CROWN (üst/tac), MIDDLE (orta), GUM (diş eti)
+     * Optional — mövcud qeydlər üçün null ola bilər.
+     */
+    @Column(name = "tooth_section")
+    String toothSection;
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "dental_order_id", referencedColumnName = "id")
