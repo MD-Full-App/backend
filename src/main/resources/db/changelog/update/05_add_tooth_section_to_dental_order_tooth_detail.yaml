@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 05_add_tooth_section_to_dental_order_tooth_detail
+      author: rustam
+      changes:
+        - addColumn:
+            tableName: dental_order_tooth_detail
+            columns:
+              - column:
+                  name: tooth_section
+                  type: VARCHAR(255)
