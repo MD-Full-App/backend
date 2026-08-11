@@ -41,6 +41,62 @@ public class DentalOrderMapper {
     }
 
     public TechnicianOrderResponse toResponse(DentalOrder o) {
+        Long metalId = null;
+        String metalName = null;
+        Long ceramicId = null;
+        String ceramicName = null;
+        Long colorId = null;
+        String colorName = null;
+
+        if (o.getToothDetails() != null) {
+            for (var detail : o.getToothDetails()) {
+                if (detail.getMetal() != null && metalId == null) {
+                    metalId = detail.getMetal().getId();
+                    metalName = detail.getMetal().getName();
+                }
+                if (detail.getCeramic() != null && ceramicId == null) {
+                    ceramicId = detail.getCeramic().getId();
+                    ceramicName = detail.getCeramic().getName();
+                }
+                if (detail.getColor() != null && colorId == null) {
+                    colorId = detail.getColor().getId();
+                    colorName = detail.getColor().getName();
+                }
+            }
+        }
+
+        if (colorId == null && o.getOrderDentureInfo() != null && o.getOrderDentureInfo().getColor() != null) {
+            try {
+                colorId = Long.parseLong(o.getOrderDentureInfo().getColor());
+            } catch (NumberFormatException ignored) {}
+        }
+
+        String description = o.getDescription();
+        String metalWork = "";
+        String ceramicWork = "";
+        String report = description;
+
+        if (description != null && description.contains(" | ")) {
+            String[] parts = description.split(" \\| ");
+            String parsedMetal = "";
+            String parsedCeramic = "";
+            String parsedReport = "";
+            for (String part : parts) {
+                if (part.startsWith("Metal işi: ")) {
+                    parsedMetal = part.substring("Metal işi: ".length());
+                } else if (part.startsWith("Keramikanın işi: ")) {
+                    parsedCeramic = part.substring("Keramikanın işi: ".length());
+                } else if (part.startsWith("Hesabat: ")) {
+                    parsedReport = part.substring("Hesabat: ".length());
+                }
+            }
+            if (!parsedMetal.isEmpty() || !parsedCeramic.isEmpty() || !parsedReport.isEmpty()) {
+                metalWork = parsedMetal;
+                ceramicWork = parsedCeramic;
+                report = parsedReport;
+            }
+        }
+
         return TechnicianOrderResponse.builder()
                 .id(o.getId())
                 .checkDate(o.getCheckDate())
@@ -80,6 +136,15 @@ public class DentalOrderMapper {
                 .urls(o.getImagePaths().stream().map(
                                 fileName -> Directory.getUrl(pathDentalOrder, fileName))
                         .collect(Collectors.toList()))
+                .metalId(metalId)
+                .metalName(metalName)
+                .ceramicId(ceramicId)
+                .ceramicName(ceramicName)
+                .colorId(colorId)
+                .colorName(colorName)
+                .metalWork(metalWork)
+                .ceramicWork(ceramicWork)
+                .report(report)
                 .build();
     }
 
