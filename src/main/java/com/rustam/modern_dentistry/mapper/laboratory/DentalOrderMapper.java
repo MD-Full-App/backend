@@ -34,6 +34,9 @@ public class DentalOrderMapper {
                 .orderDentureInfo(request.getOrderDentureInfo())
                 .dentalWorkType(DentalWorkType.valueOf(request.getDentalWorkType()))
                 .dentalWorkStatus(DentalWorkStatus.PENDING)
+                .isBridge(request.getIsBridge())
+                .startTooth(request.getStartTooth())
+                .endTooth(request.getEndTooth())
                 .build();
     }
 
@@ -47,6 +50,9 @@ public class DentalOrderMapper {
                 .dentalWorkType(o.getDentalWorkType())
                 .dentalWorkStatus(o.getDentalWorkStatus())
                 .price(o.getPrice())
+                .isBridge(o.getIsBridge())
+                .startTooth(o.getStartTooth())
+                .endTooth(o.getEndTooth())
                 .toothDetails(o.getToothDetails().stream().map(
                         toothDetail -> DentalOrderToothDetailResponse.builder()
                                 .colorId(toothDetail.getColor() != null ? toothDetail.getColor().getId() : null)
@@ -117,6 +123,16 @@ public class DentalOrderMapper {
         if (req.getTeethList() != null) {
             var teeth = teethService.findAllById(req.getTeethList());
             entity.setTeethList(teeth);
+        }
+
+        if (req.getIsBridge() != null) {
+            entity.setIsBridge(req.getIsBridge());
+        }
+        if (req.getStartTooth() != null) {
+            entity.setStartTooth(req.getStartTooth());
+        }
+        if (req.getEndTooth() != null) {
+            entity.setEndTooth(req.getEndTooth());
         }
 
         entity.setDentalWorkStatus(DentalWorkStatus.PENDING);

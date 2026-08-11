@@ -31,6 +31,10 @@ public class UpdateTechnicianOrderReq {
     List<DentalOrderToothDetailIds> toothDetailIds;
     List<Long> teethList;
 
+    Boolean isBridge;
+    Integer startTooth;
+    Integer endTooth;
+
     String doctorId;
     UUID technicianId;
     Long patientId;
