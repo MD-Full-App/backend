@@ -40,4 +40,14 @@ public class TechnicianOrderResponse {
     String patient;
 
     List<String> urls;
+
+    Long metalId;
+    String metalName;
+    Long ceramicId;
+    String ceramicName;
+    Long colorId;
+    String colorName;
+    String metalWork;
+    String ceramicWork;
+    String report;
 }
