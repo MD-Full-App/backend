@@ -34,6 +34,10 @@ public class DentalOrder {
     String description;
     BigDecimal price;
 
+    Boolean isBridge;
+    Integer startTooth;
+    Integer endTooth;
+
     @Embedded
     OrderDentureInfo orderDentureInfo;
 

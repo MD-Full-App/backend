@@ -31,6 +31,10 @@ public class TechnicianOrderResponse {
     List<DentalOrderToothDetailResponse> toothDetails;
     List<DentalOrderTeethListResponse> teethList;
 
+    Boolean isBridge;
+    Integer startTooth;
+    Integer endTooth;
+
     String doctor;
     String technician;
     String patient;
