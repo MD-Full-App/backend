@@ -5,6 +5,7 @@ import com.rustam.modern_dentistry.dao.entity.enums.DentalWorkType;
 import com.rustam.modern_dentistry.dao.entity.laboratory.DentalOrder;
 import com.rustam.modern_dentistry.dto.request.DentalOrderCreateReq;
 import com.rustam.modern_dentistry.dto.request.update.UpdateTechnicianOrderReq;
+import com.rustam.modern_dentistry.dao.entity.settings.teeth.Teeth;
 import com.rustam.modern_dentistry.dto.response.read.DentalOrderTeethListResponse;
 import com.rustam.modern_dentistry.dto.response.read.DentalOrderToothDetailResponse;
 import com.rustam.modern_dentistry.dto.response.read.TechnicianOrderResponse;
@@ -15,6 +16,7 @@ import com.rustam.modern_dentistry.util.constants.Directory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.rustam.modern_dentistry.util.constants.Directory.pathDentalOrder;
