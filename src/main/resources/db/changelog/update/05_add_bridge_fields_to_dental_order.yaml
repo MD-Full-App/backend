@@ -1,0 +1,18 @@
+databaseChangeLog:
+  - changeSet:
+      id: 5
+      author: rustam
+      changes:
+        - addColumn:
+            tableName: dental_order
+            columns:
+              - column:
+                  name: is_bridge
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+              - column:
+                  name: start_tooth
+                  type: INTEGER
+              - column:
+                  name: end_tooth
+                  type: INTEGER
