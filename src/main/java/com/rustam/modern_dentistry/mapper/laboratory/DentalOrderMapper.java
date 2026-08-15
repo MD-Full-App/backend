@@ -120,20 +120,18 @@ public class DentalOrderMapper {
                                 .toothSection(toothDetail.getToothSection())
                                 .build()
                 ).toList())
-                .teethList(o.getTeethList().stream().map(
-                        tooth -> {
-                            return DentalOrderTeethListResponse.builder()
-                                    .id(tooth.getId())
-                                    .toothNo(tooth.getToothNo())
-                                    .toothType(tooth.getToothType().toString())
-                                    .toothLocation(tooth.getToothLocation().toString())
-                                    .build();
-                        }
+                .teethList(teethList.stream().map(
+                        tooth -> DentalOrderTeethListResponse.builder()
+                                .id(tooth.getId())
+                                .toothNo(tooth.getToothNo())
+                                .toothType(tooth.getToothType() != null ? tooth.getToothType().toString() : null)
+                                .toothLocation(tooth.getToothLocation() != null ? tooth.getToothLocation().toString() : null)
+                                .build()
                 ).toList())
-                .doctor(o.getBaseUser().getName() + " " + o.getBaseUser().getSurname())
-                .patient(o.getPatient().getName() + " " + o.getPatient().getSurname())
-                .technician(o.getTechnician().getName() + " " + o.getTechnician().getSurname())
-                .urls(o.getImagePaths().stream().map(
+                .doctor(doctorName)
+                .patient(patientName)
+                .technician(technicianName)
+                .urls(imagePaths.stream().filter(java.util.Objects::nonNull).map(
                                 fileName -> Directory.getUrl(pathDentalOrder, fileName))
                         .collect(Collectors.toList()))
                 .metalId(metalId)
@@ -146,6 +144,10 @@ public class DentalOrderMapper {
                 .ceramicWork(ceramicWork)
                 .report(report)
                 .build();
+    }
+
+    private String safeName(String firstName, String lastName) {
+        return ((firstName == null ? "" : firstName) + " " + (lastName == null ? "" : lastName)).trim();
     }
 
     public void updateEntity(DentalOrder entity, UpdateTechnicianOrderReq req) {
