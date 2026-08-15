@@ -38,6 +38,20 @@ public class DentalOrderMapper {
     }
 
     public TechnicianOrderResponse toResponse(DentalOrder o) {
+        var toothDetails = o.getToothDetails() == null ? java.util.Collections.<com.rustam.modern_dentistry.dao.entity.laboratory.DentalOrderToothDetail>emptyList() : o.getToothDetails();
+        var teethList = o.getTeethList() == null ? java.util.Collections.emptyList() : o.getTeethList();
+        var imagePaths = o.getImagePaths() == null ? java.util.Collections.emptyList() : o.getImagePaths();
+
+        String doctorName = o.getBaseUser() != null
+                ? safeName(o.getBaseUser().getName(), o.getBaseUser().getSurname())
+                : "";
+        String patientName = o.getPatient() != null
+                ? safeName(o.getPatient().getName(), o.getPatient().getSurname())
+                : "";
+        String technicianName = o.getTechnician() != null
+                ? safeName(o.getTechnician().getName(), o.getTechnician().getSurname())
+                : "";
+
         return TechnicianOrderResponse.builder()
                 .id(o.getId())
                 .checkDate(o.getCheckDate())
@@ -47,7 +61,7 @@ public class DentalOrderMapper {
                 .dentalWorkType(o.getDentalWorkType())
                 .dentalWorkStatus(o.getDentalWorkStatus())
                 .price(o.getPrice())
-                .toothDetails(o.getToothDetails().stream().map(
+                .toothDetails(toothDetails.stream().map(
                         toothDetail -> DentalOrderToothDetailResponse.builder()
                                 .colorId(toothDetail.getColor() != null ? toothDetail.getColor().getId() : null)
                                 .colorName(toothDetail.getColor() != null ? toothDetail.getColor().getName() : null)
@@ -58,23 +72,25 @@ public class DentalOrderMapper {
                                 .toothSection(toothDetail.getToothSection())
                                 .build()
                 ).toList())
-                .teethList(o.getTeethList().stream().map(
-                        tooth -> {
-                            return DentalOrderTeethListResponse.builder()
-                                    .id(tooth.getId())
-                                    .toothNo(tooth.getToothNo())
-                                    .toothType(tooth.getToothType().toString())
-                                    .toothLocation(tooth.getToothLocation().toString())
-                                    .build();
-                        }
+                .teethList(teethList.stream().map(
+                        tooth -> DentalOrderTeethListResponse.builder()
+                                .id(tooth.getId())
+                                .toothNo(tooth.getToothNo())
+                                .toothType(tooth.getToothType() != null ? tooth.getToothType().toString() : null)
+                                .toothLocation(tooth.getToothLocation() != null ? tooth.getToothLocation().toString() : null)
+                                .build()
                 ).toList())
-                .doctor(o.getBaseUser().getName() + " " + o.getBaseUser().getSurname())
-                .patient(o.getPatient().getName() + " " + o.getPatient().getSurname())
-                .technician(o.getTechnician().getName() + " " + o.getTechnician().getSurname())
-                .urls(o.getImagePaths().stream().map(
+                .doctor(doctorName)
+                .patient(patientName)
+                .technician(technicianName)
+                .urls(imagePaths.stream().filter(java.util.Objects::nonNull).map(
                                 fileName -> Directory.getUrl(pathDentalOrder, fileName))
                         .collect(Collectors.toList()))
                 .build();
+    }
+
+    private String safeName(String firstName, String lastName) {
+        return ((firstName == null ? "" : firstName) + " " + (lastName == null ? "" : lastName)).trim();
     }
 
     public void updateEntity(DentalOrder entity, UpdateTechnicianOrderReq req) {

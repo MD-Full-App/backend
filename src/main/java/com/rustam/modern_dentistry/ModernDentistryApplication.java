@@ -11,9 +11,13 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+
 import java.util.*;
 
-@SpringBootApplication
+@SpringBootApplication(exclude = { RedisRepositoriesAutoConfiguration.class })
+@EnableJpaRepositories(basePackages = "com.rustam.modern_dentistry.dao.repository")
 @RequiredArgsConstructor
 public class ModernDentistryApplication implements CommandLineRunner {
 

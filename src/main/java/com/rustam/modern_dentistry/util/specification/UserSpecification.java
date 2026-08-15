@@ -5,6 +5,7 @@ import com.rustam.modern_dentistry.dao.entity.users.BaseUser;
 import com.rustam.modern_dentistry.dao.entity.users.Patient;
 import com.rustam.modern_dentistry.dto.request.read.AddWorkerSearchRequest;
 import com.rustam.modern_dentistry.dto.request.read.PatientSearchRequest;
+import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
@@ -41,7 +42,41 @@ public class UserSpecification {
                 predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("finCode")), "%" + request.getFinCode().toLowerCase() + "%"));
             }
             if (request.getPhone() != null && !request.getPhone().isEmpty()) {
-                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("phone")), "%" + request.getPhone().toLowerCase() + "%"));
+                List<Predicate> phonePredicates = new ArrayList<>();
+                String rawPhone = request.getPhone().replace("%", "").trim().toLowerCase();
+                String cleanPhone = request.getPhone().replaceAll("[^0-9]", "");
+
+                if (!rawPhone.isEmpty()) {
+                    phonePredicates.add(criteriaBuilder.like(criteriaBuilder.lower(criteriaBuilder.coalesce(root.get("phone"), "")), "%" + rawPhone + "%"));
+                    phonePredicates.add(criteriaBuilder.like(criteriaBuilder.lower(criteriaBuilder.coalesce(root.get("workPhone"), "")), "%" + rawPhone + "%"));
+                    phonePredicates.add(criteriaBuilder.like(criteriaBuilder.lower(criteriaBuilder.coalesce(root.get("homePhone"), "")), "%" + rawPhone + "%"));
+                }
+
+                if (!cleanPhone.isEmpty()) {
+                    List<String> candidatePatterns = new ArrayList<>();
+                    candidatePatterns.add(cleanPhone);
+                    if (cleanPhone.startsWith("0") && cleanPhone.length() > 1) {
+                        candidatePatterns.add(cleanPhone.substring(1));
+                    }
+                    if (cleanPhone.startsWith("994") && cleanPhone.length() > 3) {
+                        candidatePatterns.add(cleanPhone.substring(3));
+                    }
+
+                    List<Expression<String>> phoneExpressions = new ArrayList<>();
+                    phoneExpressions.add(criteriaBuilder.function("regexp_replace", String.class, criteriaBuilder.coalesce(root.get("phone"), ""), criteriaBuilder.literal("[^0-9]"), criteriaBuilder.literal(""), criteriaBuilder.literal("g")));
+                    phoneExpressions.add(criteriaBuilder.function("regexp_replace", String.class, criteriaBuilder.coalesce(root.get("workPhone"), ""), criteriaBuilder.literal("[^0-9]"), criteriaBuilder.literal(""), criteriaBuilder.literal("g")));
+                    phoneExpressions.add(criteriaBuilder.function("regexp_replace", String.class, criteriaBuilder.coalesce(root.get("homePhone"), ""), criteriaBuilder.literal("[^0-9]"), criteriaBuilder.literal(""), criteriaBuilder.literal("g")));
+
+                    for (Expression<String> expr : phoneExpressions) {
+                        for (String pattern : candidatePatterns) {
+                            phonePredicates.add(criteriaBuilder.like(expr, "%" + pattern + "%"));
+                        }
+                    }
+                }
+
+                if (!phonePredicates.isEmpty()) {
+                    predicates.add(criteriaBuilder.or(phonePredicates.toArray(new Predicate[0])));
+                }
             }
             if (request.getGenderStatus() != null) {
                 predicates.add(criteriaBuilder.equal(root.get("genderStatus"), request.getGenderStatus()));
@@ -68,7 +103,43 @@ public class UserSpecification {
                 predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("patronymic")), "%" + request.getPatronymic().toLowerCase() + "%"));
             }
             if (request.getPhone() != null && !request.getPhone().isEmpty()) {
-                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("phone")), "%" + request.getPhone().toLowerCase() + "%"));
+                List<Predicate> phonePredicates = new ArrayList<>();
+                String rawPhone = request.getPhone().replace("%", "").trim().toLowerCase();
+                String cleanPhone = request.getPhone().replaceAll("[^0-9]", "");
+
+                if (!rawPhone.isEmpty()) {
+                    phonePredicates.add(criteriaBuilder.like(criteriaBuilder.lower(criteriaBuilder.coalesce(root.get("phone"), "")), "%" + rawPhone + "%"));
+                    phonePredicates.add(criteriaBuilder.like(criteriaBuilder.lower(criteriaBuilder.coalesce(root.get("phone2"), "")), "%" + rawPhone + "%"));
+                    phonePredicates.add(criteriaBuilder.like(criteriaBuilder.lower(criteriaBuilder.coalesce(root.get("phone3"), "")), "%" + rawPhone + "%"));
+                    phonePredicates.add(criteriaBuilder.like(criteriaBuilder.lower(criteriaBuilder.coalesce(root.get("homePhone"), "")), "%" + rawPhone + "%"));
+                }
+
+                if (!cleanPhone.isEmpty()) {
+                    List<String> candidatePatterns = new ArrayList<>();
+                    candidatePatterns.add(cleanPhone);
+                    if (cleanPhone.startsWith("0") && cleanPhone.length() > 1) {
+                        candidatePatterns.add(cleanPhone.substring(1));
+                    }
+                    if (cleanPhone.startsWith("994") && cleanPhone.length() > 3) {
+                        candidatePatterns.add(cleanPhone.substring(3));
+                    }
+
+                    List<Expression<String>> phoneExpressions = new ArrayList<>();
+                    phoneExpressions.add(criteriaBuilder.function("regexp_replace", String.class, criteriaBuilder.coalesce(root.get("phone"), ""), criteriaBuilder.literal("[^0-9]"), criteriaBuilder.literal(""), criteriaBuilder.literal("g")));
+                    phoneExpressions.add(criteriaBuilder.function("regexp_replace", String.class, criteriaBuilder.coalesce(root.get("phone2"), ""), criteriaBuilder.literal("[^0-9]"), criteriaBuilder.literal(""), criteriaBuilder.literal("g")));
+                    phoneExpressions.add(criteriaBuilder.function("regexp_replace", String.class, criteriaBuilder.coalesce(root.get("phone3"), ""), criteriaBuilder.literal("[^0-9]"), criteriaBuilder.literal(""), criteriaBuilder.literal("g")));
+                    phoneExpressions.add(criteriaBuilder.function("regexp_replace", String.class, criteriaBuilder.coalesce(root.get("homePhone"), ""), criteriaBuilder.literal("[^0-9]"), criteriaBuilder.literal(""), criteriaBuilder.literal("g")));
+
+                    for (Expression<String> expr : phoneExpressions) {
+                        for (String pattern : candidatePatterns) {
+                            phonePredicates.add(criteriaBuilder.like(expr, "%" + pattern + "%"));
+                        }
+                    }
+                }
+
+                if (!phonePredicates.isEmpty()) {
+                    predicates.add(criteriaBuilder.or(phonePredicates.toArray(new Predicate[0])));
+                }
             }
             if (request.getEnabled() != null) {
                 predicates.add(criteriaBuilder.equal(root.get("enabled"), request.getEnabled()));
