@@ -31,9 +31,23 @@ public class TechnicianOrderResponse {
     List<DentalOrderToothDetailResponse> toothDetails;
     List<DentalOrderTeethListResponse> teethList;
 
+    Boolean isBridge;
+    Integer startTooth;
+    Integer endTooth;
+
     String doctor;
     String technician;
     String patient;
 
     List<String> urls;
+
+    Long metalId;
+    String metalName;
+    Long ceramicId;
+    String ceramicName;
+    Long colorId;
+    String colorName;
+    String metalWork;
+    String ceramicWork;
+    String report;
 }

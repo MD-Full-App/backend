@@ -30,6 +30,10 @@ public class DentalOrderCreateReq {
     List<DentalOrderToothDetailIds> toothDetailIds;
     List<Long> teethList;
 
+    Boolean isBridge;
+    Integer startTooth;
+    Integer endTooth;
+
     @NotNull(message = VALIDATION_DOCTOR_ID)
     String doctorId;
     @NotNull(message = VALIDATION_TECHNICIAN_ID)

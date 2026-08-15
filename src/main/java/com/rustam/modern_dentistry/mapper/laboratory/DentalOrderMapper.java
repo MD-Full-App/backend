@@ -36,24 +36,68 @@ public class DentalOrderMapper {
                 .orderDentureInfo(request.getOrderDentureInfo())
                 .dentalWorkType(DentalWorkType.valueOf(request.getDentalWorkType()))
                 .dentalWorkStatus(DentalWorkStatus.PENDING)
+                .isBridge(request.getIsBridge())
+                .startTooth(request.getStartTooth())
+                .endTooth(request.getEndTooth())
                 .build();
     }
 
     public TechnicianOrderResponse toResponse(DentalOrder o) {
-        List<com.rustam.modern_dentistry.dao.entity.laboratory.DentalOrderToothDetail> toothDetails =
-                o.getToothDetails() == null ? java.util.Collections.emptyList() : o.getToothDetails();
-        List<Teeth> teethList = o.getTeethList() == null ? java.util.Collections.emptyList() : o.getTeethList();
-        List<String> imagePaths = o.getImagePaths() == null ? java.util.Collections.emptyList() : o.getImagePaths();
+        Long metalId = null;
+        String metalName = null;
+        Long ceramicId = null;
+        String ceramicName = null;
+        Long colorId = null;
+        String colorName = null;
 
-        String doctorName = o.getBaseUser() != null
-                ? safeName(o.getBaseUser().getName(), o.getBaseUser().getSurname())
-                : "";
-        String patientName = o.getPatient() != null
-                ? safeName(o.getPatient().getName(), o.getPatient().getSurname())
-                : "";
-        String technicianName = o.getTechnician() != null
-                ? safeName(o.getTechnician().getName(), o.getTechnician().getSurname())
-                : "";
+        if (o.getToothDetails() != null) {
+            for (var detail : o.getToothDetails()) {
+                if (detail.getMetal() != null && metalId == null) {
+                    metalId = detail.getMetal().getId();
+                    metalName = detail.getMetal().getName();
+                }
+                if (detail.getCeramic() != null && ceramicId == null) {
+                    ceramicId = detail.getCeramic().getId();
+                    ceramicName = detail.getCeramic().getName();
+                }
+                if (detail.getColor() != null && colorId == null) {
+                    colorId = detail.getColor().getId();
+                    colorName = detail.getColor().getName();
+                }
+            }
+        }
+
+        if (colorId == null && o.getOrderDentureInfo() != null && o.getOrderDentureInfo().getColor() != null) {
+            try {
+                colorId = Long.parseLong(o.getOrderDentureInfo().getColor());
+            } catch (NumberFormatException ignored) {}
+        }
+
+        String description = o.getDescription();
+        String metalWork = "";
+        String ceramicWork = "";
+        String report = description;
+
+        if (description != null && description.contains(" | ")) {
+            String[] parts = description.split(" \\| ");
+            String parsedMetal = "";
+            String parsedCeramic = "";
+            String parsedReport = "";
+            for (String part : parts) {
+                if (part.startsWith("Metal işi: ")) {
+                    parsedMetal = part.substring("Metal işi: ".length());
+                } else if (part.startsWith("Keramikanın işi: ")) {
+                    parsedCeramic = part.substring("Keramikanın işi: ".length());
+                } else if (part.startsWith("Hesabat: ")) {
+                    parsedReport = part.substring("Hesabat: ".length());
+                }
+            }
+            if (!parsedMetal.isEmpty() || !parsedCeramic.isEmpty() || !parsedReport.isEmpty()) {
+                metalWork = parsedMetal;
+                ceramicWork = parsedCeramic;
+                report = parsedReport;
+            }
+        }
 
         return TechnicianOrderResponse.builder()
                 .id(o.getId())
@@ -64,7 +108,10 @@ public class DentalOrderMapper {
                 .dentalWorkType(o.getDentalWorkType())
                 .dentalWorkStatus(o.getDentalWorkStatus())
                 .price(o.getPrice())
-                .toothDetails(toothDetails.stream().map(
+                .isBridge(o.getIsBridge())
+                .startTooth(o.getStartTooth())
+                .endTooth(o.getEndTooth())
+                .toothDetails(o.getToothDetails().stream().map(
                         toothDetail -> DentalOrderToothDetailResponse.builder()
                                 .colorId(toothDetail.getColor() != null ? toothDetail.getColor().getId() : null)
                                 .colorName(toothDetail.getColor() != null ? toothDetail.getColor().getName() : null)
@@ -89,6 +136,15 @@ public class DentalOrderMapper {
                 .urls(imagePaths.stream().filter(java.util.Objects::nonNull).map(
                                 fileName -> Directory.getUrl(pathDentalOrder, fileName))
                         .collect(Collectors.toList()))
+                .metalId(metalId)
+                .metalName(metalName)
+                .ceramicId(ceramicId)
+                .ceramicName(ceramicName)
+                .colorId(colorId)
+                .colorName(colorName)
+                .metalWork(metalWork)
+                .ceramicWork(ceramicWork)
+                .report(report)
                 .build();
     }
 
@@ -136,6 +192,16 @@ public class DentalOrderMapper {
         if (req.getTeethList() != null) {
             var teeth = teethService.findAllById(req.getTeethList());
             entity.setTeethList(teeth);
+        }
+
+        if (req.getIsBridge() != null) {
+            entity.setIsBridge(req.getIsBridge());
+        }
+        if (req.getStartTooth() != null) {
+            entity.setStartTooth(req.getStartTooth());
+        }
+        if (req.getEndTooth() != null) {
+            entity.setEndTooth(req.getEndTooth());
         }
 
         entity.setDentalWorkStatus(DentalWorkStatus.PENDING);
