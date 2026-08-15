@@ -5,6 +5,7 @@ import com.rustam.modern_dentistry.dao.entity.enums.DentalWorkType;
 import com.rustam.modern_dentistry.dao.entity.laboratory.DentalOrder;
 import com.rustam.modern_dentistry.dto.request.DentalOrderCreateReq;
 import com.rustam.modern_dentistry.dto.request.update.UpdateTechnicianOrderReq;
+import com.rustam.modern_dentistry.dao.entity.settings.teeth.Teeth;
 import com.rustam.modern_dentistry.dto.response.read.DentalOrderTeethListResponse;
 import com.rustam.modern_dentistry.dto.response.read.DentalOrderToothDetailResponse;
 import com.rustam.modern_dentistry.dto.response.read.TechnicianOrderResponse;
@@ -15,6 +16,7 @@ import com.rustam.modern_dentistry.util.constants.Directory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.rustam.modern_dentistry.util.constants.Directory.pathDentalOrder;
@@ -38,9 +40,10 @@ public class DentalOrderMapper {
     }
 
     public TechnicianOrderResponse toResponse(DentalOrder o) {
-        var toothDetails = o.getToothDetails() == null ? java.util.Collections.<com.rustam.modern_dentistry.dao.entity.laboratory.DentalOrderToothDetail>emptyList() : o.getToothDetails();
-        var teethList = o.getTeethList() == null ? java.util.Collections.emptyList() : o.getTeethList();
-        var imagePaths = o.getImagePaths() == null ? java.util.Collections.emptyList() : o.getImagePaths();
+        List<com.rustam.modern_dentistry.dao.entity.laboratory.DentalOrderToothDetail> toothDetails =
+                o.getToothDetails() == null ? java.util.Collections.emptyList() : o.getToothDetails();
+        List<Teeth> teethList = o.getTeethList() == null ? java.util.Collections.emptyList() : o.getTeethList();
+        List<String> imagePaths = o.getImagePaths() == null ? java.util.Collections.emptyList() : o.getImagePaths();
 
         String doctorName = o.getBaseUser() != null
                 ? safeName(o.getBaseUser().getName(), o.getBaseUser().getSurname())
