@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface PatientTreatmentRepository extends JpaRepository<PatientTreatment, Long> {
-    List<PatientTreatment> findByIdInAndIsCheckedAndStatusInAndActionStatusIn(
+    List<PatientTreatment> findByExecutedPlans_IdInAndIsCheckedAndStatusInAndActionStatusIn(
         List<UUID> ids,
         boolean isChecked,
         List<String> statuses,
