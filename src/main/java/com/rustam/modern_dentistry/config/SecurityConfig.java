@@ -66,13 +66,17 @@ public class SecurityConfig {
                 "patient-recipe", "patient-report", "patient-treatment",
                 "patient-videos", "patient-xray", "patient-insurance-balance",
                 "patient-insurance", "patient-plans", "patient-plans-main",
-                "appointment-type", "blacklist-result", "cabinet", "ceramic",
-                "color", "examination", "garniture", "insurance-company",
-                "metal", "price-category", "specialization-category",
+                "appointment-type", "cabinet", "ceramic",
+                "color", "examination", "insurance-company",
+                "metal", "specialization-category",
                 "teeth", "teeth-examination", "teeth-operation", "permission",
                 "room-stock", "warehouse-entry", "warehouse-removal",
                 "deletion-from-warehouse", "order-from-warehouse", "warehouse",
-                "reports"
+                "reports",
+                // Corrected/Added modules
+                "implant", "implant-size", "operation-types", "operation-type-items",
+                "garnitures", "price-categories", "recipe", "anamnesis-list",
+                "anamnesis-categories", "blacklist-results", "product-category"
         );
 
         for (String module : modules) {
@@ -137,7 +141,7 @@ public class SecurityConfig {
         if (path.contains("/implant")) return "İmplantlar";
         if (path.contains("/garniture")) return "Qarnirlar";
         if (path.contains("/insurance-company")) return "Sığorta şirkətləri";
-        if (path.contains("/price-category")) return "Qiymət kateqoriyaları";
+        if (path.contains("/price-categor")) return "Qiymət kateqoriyaları"; // Matches both price-category and price-categories
         if (path.contains("/examination")) return "Müayinə siyahısı";
         if (path.contains("/blacklist-result")) return "Qara siyahı səbəbləri";
         if (path.contains("/teeth")) return "Digər";
@@ -149,6 +153,12 @@ public class SecurityConfig {
         if (path.contains("/deletion-from-warehouse")) return "Anbardan silinmə";
         if (path.contains("/order-from-warehouse")) return "Anbara sifariş";
         if (path.contains("/warehouse")) return "Klinikanın stoku";
+
+        // New mappings
+        if (path.contains("/operation-types") || path.contains("/operation-type-items")) return "Əməliyyat növləri";
+        if (path.contains("/recipe")) return "Reseptlər";
+        if (path.contains("/anamnesis-list") || path.contains("/anamnesis-categories")) return "Anamnez siyahısı";
+        if (path.contains("/product-category")) return "Məhsul kateqoriyaları";
         
         return path;
     }
