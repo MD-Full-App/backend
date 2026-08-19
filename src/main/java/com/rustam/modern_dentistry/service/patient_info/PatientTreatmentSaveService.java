@@ -26,7 +26,7 @@ public class PatientTreatmentSaveService {
     @Transactional
     public void save(PatientTreatmentSaveRequest req) {
         List<PatientTreatment> patientTreatments = patientTreatmentRepository
-                .findByIdInAndIsCheckedAndStatusInAndActionStatusIn(
+                .findByExecutedPlans_IdInAndIsCheckedAndStatusInAndActionStatusIn(
                         req.getCheckedPlanIds(),
                         true,
                         List.of("A", "C"),

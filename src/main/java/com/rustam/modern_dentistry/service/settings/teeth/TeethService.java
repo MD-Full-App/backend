@@ -33,7 +33,7 @@ public class TeethService {
     TeethRepository teethRepository;
     TeethMapper teethMapper;
 
-    public void create(CreateTeethRequest createTeethRequest) {
+    public TeethResponse create(CreateTeethRequest createTeethRequest) {
         boolean existsTeethByToothNo = existsTeethByToothNo(createTeethRequest.getToothNo());
         if (existsTeethByToothNo) {
             throw new ExistsException(("This tooth number is already available."));
@@ -43,7 +43,13 @@ public class TeethService {
                 .toothType(createTeethRequest.getToothType())
                 .toothLocation(createTeethRequest.getToothLocation())
                 .build();
-        teethRepository.save(teeth);
+        Teeth savedTeeth = teethRepository.save(teeth);
+        return TeethResponse.builder()
+                .id(savedTeeth.getId())
+                .toothNo(savedTeeth.getToothNo())
+                .toothType(savedTeeth.getToothType())
+                .toothLocation(savedTeeth.getToothLocation())
+                .build();
     }
 
     @Transactional(readOnly = true)
