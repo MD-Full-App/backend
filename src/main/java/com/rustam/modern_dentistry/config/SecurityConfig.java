@@ -59,20 +59,24 @@ public class SecurityConfig {
     private void registerModulePermissions(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry x) {
         List<String> modules = List.of(
                 "patient", "appointment", "add-worker", "general-calendar",
-                "patient-blacklist", "reservation", "technician",
+                "patient-blacklist", "reservation", "reservations", "technician",
                 "workers-work-schedule", "specialization",
                 "laboratory", "laboratory-payment",
                 "patient-anamnesis", "patient-examinations", "patient-photos",
-                "patient-recipe", "patient-report", "patient-treatment",
+                "patient-recipe", "patient-recipes", "patient-report", "patient-treatment",
                 "patient-videos", "patient-xray", "patient-insurance-balance",
                 "patient-insurance", "patient-plans", "patient-plans-main",
-                "appointment-type", "blacklist-result", "cabinet", "ceramic",
-                "color", "examination", "garniture", "insurance-company",
-                "metal", "price-category", "specialization-category",
+                "appointment-type", "cabinet", "ceramic",
+                "color", "examination", "insurance-company",
+                "metal", "specialization-category",
                 "teeth", "teeth-examination", "teeth-operation", "permission",
-                "room-stock", "warehouse-entry", "warehouse-removal",
+                "room-stock", "warehouse-entry", "warehouse-removal", "warehouse-removal-product",
                 "deletion-from-warehouse", "order-from-warehouse", "warehouse",
-                "reports"
+                "warehouse-receipts", "reports",
+                // Corrected/Added modules
+                "implant", "implant-size", "operation-types", "operation-type-items",
+                "garnitures", "price-categories", "recipe", "medicine", "anamnesis-list",
+                "anamnesis-categories", "blacklist-results", "product", "product-category"
         );
 
         for (String module : modules) {
@@ -137,7 +141,7 @@ public class SecurityConfig {
         if (path.contains("/implant")) return "İmplantlar";
         if (path.contains("/garniture")) return "Qarnirlar";
         if (path.contains("/insurance-company")) return "Sığorta şirkətləri";
-        if (path.contains("/price-category")) return "Qiymət kateqoriyaları";
+        if (path.contains("/price-categor")) return "Qiymət kateqoriyaları"; // Matches both price-category and price-categories
         if (path.contains("/examination")) return "Müayinə siyahısı";
         if (path.contains("/blacklist-result")) return "Qara siyahı səbəbləri";
         if (path.contains("/teeth")) return "Digər";
@@ -145,10 +149,17 @@ public class SecurityConfig {
         
         if (path.contains("/room-stock")) return "Kabinet/Obyekt stoku";
         if (path.contains("/warehouse-entry")) return "Anbardan daxilolmalar";
+        if (path.contains("/warehouse-removal-product")) return "Məhsul istifadəsi";
         if (path.contains("/warehouse-removal")) return "Anbardan maxaric";
         if (path.contains("/deletion-from-warehouse")) return "Anbardan silinmə";
         if (path.contains("/order-from-warehouse")) return "Anbara sifariş";
         if (path.contains("/warehouse")) return "Klinikanın stoku";
+
+        // New mappings
+        if (path.contains("/operation-types") || path.contains("/operation-type-items")) return "Əməliyyat növləri";
+        if (path.contains("/recipe") || path.contains("/medicine")) return "Reseptlər";
+        if (path.contains("/anamnesis-list") || path.contains("/anamnesis-categories")) return "Anamnez siyahısı";
+        if (path.contains("/product-category") || path.contains("/product")) return "Məhsul kateqoriyaları";
         
         return path;
     }
