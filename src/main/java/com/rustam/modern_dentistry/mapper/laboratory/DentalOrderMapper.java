@@ -49,6 +49,11 @@ public class DentalOrderMapper {
         String ceramicName = null;
         Long colorId = null;
         String colorName = null;
+        String doctorName = o.getBaseUser() != null ? safeName(o.getBaseUser().getName(), o.getBaseUser().getSurname()) : null;
+        String technicianName = o.getTechnician() != null ? safeName(o.getTechnician().getName(), o.getTechnician().getSurname()) : null;
+        String patientName = o.getPatient() != null ? safeName(o.getPatient().getName(), o.getPatient().getSurname()) : null;
+        List<Teeth> teethList = o.getTeethList() != null ? o.getTeethList() : List.of();
+        List<String> imagePaths = o.getImagePaths() != null ? o.getImagePaths() : List.of();
 
         if (o.getToothDetails() != null) {
             for (var detail : o.getToothDetails()) {
@@ -111,17 +116,17 @@ public class DentalOrderMapper {
                 .isBridge(o.getIsBridge())
                 .startTooth(o.getStartTooth())
                 .endTooth(o.getEndTooth())
-                .toothDetails(o.getToothDetails().stream().map(
-                        toothDetail -> DentalOrderToothDetailResponse.builder()
-                                .colorId(toothDetail.getColor() != null ? toothDetail.getColor().getId() : null)
-                                .colorName(toothDetail.getColor() != null ? toothDetail.getColor().getName() : null)
-                                .metalId(toothDetail.getMetal() != null ? toothDetail.getMetal().getId() : null)
-                                .metalName(toothDetail.getMetal() != null ? toothDetail.getMetal().getName() : null)
-                                .ceramicId(toothDetail.getCeramic() != null ? toothDetail.getCeramic().getId() : null)
-                                .ceramicName(toothDetail.getCeramic() != null ? toothDetail.getCeramic().getName() : null)
-                                .toothSection(toothDetail.getToothSection())
-                                .build()
-                ).toList())
+                .toothDetails(o.getToothDetails() != null ? o.getToothDetails().stream().map(
+                    toothDetail -> DentalOrderToothDetailResponse.builder()
+                        .colorId(toothDetail.getColor() != null ? toothDetail.getColor().getId() : null)
+                        .colorName(toothDetail.getColor() != null ? toothDetail.getColor().getName() : null)
+                        .metalId(toothDetail.getMetal() != null ? toothDetail.getMetal().getId() : null)
+                        .metalName(toothDetail.getMetal() != null ? toothDetail.getMetal().getName() : null)
+                        .ceramicId(toothDetail.getCeramic() != null ? toothDetail.getCeramic().getId() : null)
+                        .ceramicName(toothDetail.getCeramic() != null ? toothDetail.getCeramic().getName() : null)
+                        .toothSection(toothDetail.getToothSection())
+                        .build()
+                ).toList() : List.of())
                 .teethList(teethList.stream().map(
                         tooth -> DentalOrderTeethListResponse.builder()
                                 .id(tooth.getId())
