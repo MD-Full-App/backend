@@ -478,6 +478,9 @@ public class ReportsService {
         long end = now.atTime(23, 59, 59, 999_999_999).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 
         switch (period != null ? period.toLowerCase() : "bu_ay") {
+            case "all":
+                start = Instant.EPOCH.toEpochMilli();
+                break;
             case "bu_hefte":
                 LocalDate monday = now.with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
                 start = monday.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli();
