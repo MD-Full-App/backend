@@ -49,9 +49,18 @@ public class DentalOrderMapper {
         String ceramicName = null;
         Long colorId = null;
         String colorName = null;
-        String doctorName = o.getBaseUser() != null ? safeName(o.getBaseUser().getName(), o.getBaseUser().getSurname()) : null;
-        String technicianName = o.getTechnician() != null ? safeName(o.getTechnician().getName(), o.getTechnician().getSurname()) : null;
-        String patientName = o.getPatient() != null ? safeName(o.getPatient().getName(), o.getPatient().getSurname()) : null;
+        String doctorName = safeName(
+                o.getBaseUser() != null ? o.getBaseUser().getName() : null,
+                o.getBaseUser() != null ? o.getBaseUser().getSurname() : null
+        );
+        String technicianName = safeName(
+                o.getTechnician() != null ? o.getTechnician().getName() : null,
+                o.getTechnician() != null ? o.getTechnician().getSurname() : null
+        );
+        String patientName = safeName(
+                o.getPatient() != null ? o.getPatient().getName() : null,
+                o.getPatient() != null ? o.getPatient().getSurname() : null
+        );
         List<Teeth> teethList = o.getTeethList() != null ? o.getTeethList() : List.of();
         List<String> imagePaths = o.getImagePaths() != null ? o.getImagePaths() : List.of();
 
