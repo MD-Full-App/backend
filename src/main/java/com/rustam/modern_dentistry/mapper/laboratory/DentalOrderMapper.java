@@ -1,4 +1,3 @@
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              DentalOrderMapper.java
 package com.rustam.modern_dentistry.mapper.laboratory;
 
 import com.rustam.modern_dentistry.dao.entity.enums.DentalWorkStatus;
