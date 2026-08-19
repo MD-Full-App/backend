@@ -7,6 +7,7 @@ import com.rustam.modern_dentistry.dao.entity.enums.status.Appointment;
 import com.rustam.modern_dentistry.dao.repository.patient_info.PatientReportRepository;
 import com.rustam.modern_dentistry.dao.repository.patient_info.InvoiceRepository;
 import com.rustam.modern_dentistry.dao.repository.patient_info.PaymentRepository;
+import com.rustam.modern_dentistry.dao.entity.users.BaseUser;
 import com.rustam.modern_dentistry.dao.repository.BaseUserRepository;
 import com.rustam.modern_dentistry.dao.repository.GeneralCalendarRepository;
 import com.rustam.modern_dentistry.dao.repository.PatientRepository;
@@ -112,7 +113,7 @@ public class ReportsService {
         // 5. Doctors Production
         Map<String, List<PatientReport>> byDoctor = reports.stream()
                 .filter(r -> r.getExecutionDoctorName() != null)
-                .collect(Collectors.groupingBy(PatientReport::getExecutionDoctorName));
+                .collect(Collectors.groupingBy(r -> resolveDoctorName(r.getExecutionDoctorName())));
 
         List<DoctorProductionItem> doctorsProduction = new ArrayList<>();
         BigDecimal totalDoctorAmount = byDoctor.values().stream()
@@ -333,12 +334,12 @@ public class ReportsService {
                         .patientName(report.getPatientName())
                         .teethNo(report.getTeethNo())
                         .operationName(report.getOperationName())
-                        .planningDoctorName(report.getPlanningDoctorName())
+                        .planningDoctorName(resolveDoctorName(report.getPlanningDoctorName()))
                         .price(report.getPrice())
                         .discount(report.getDiscount())
                         .finalPrice(report.getFinalPrice())
                         .executionDate(report.getExecutionDate())
-                        .executionDoctorName(report.getExecutionDoctorName())
+                        .executionDoctorName(resolveDoctorName(report.getExecutionDoctorName()))
                         .build())
                 .collect(Collectors.toList());
 
@@ -365,12 +366,12 @@ public class ReportsService {
                         .patientName(r.getPatientName() != null ? r.getPatientName() : "")
                         .teethNo(r.getTeethNo() != null ? String.valueOf(r.getTeethNo()) : "")
                         .operationName(r.getOperationName() != null ? r.getOperationName() : "")
-                        .planningDoctorName(r.getPlanningDoctorName() != null ? r.getPlanningDoctorName() : "")
+                        .planningDoctorName(r.getPlanningDoctorName() != null ? resolveDoctorName(r.getPlanningDoctorName()) : "")
                         .price(r.getPrice() != null ? r.getPrice() : BigDecimal.ZERO)
                         .discount(r.getDiscount() != null ? r.getDiscount() : BigDecimal.ZERO)
                         .finalPrice(r.getFinalPrice() != null ? r.getFinalPrice() : BigDecimal.ZERO)
                         .executionDate(r.getExecutionDate() != null ? formatter.format(Instant.ofEpochMilli(r.getExecutionDate())) : "")
-                        .executionDoctorName(r.getExecutionDoctorName() != null ? r.getExecutionDoctorName() : "")
+                        .executionDoctorName(r.getExecutionDoctorName() != null ? resolveDoctorName(r.getExecutionDoctorName()) : "")
                         .build())
                 .collect(Collectors.toList());
 
@@ -659,5 +660,21 @@ public class ReportsService {
                 .collect(Collectors.toList());
 
         return ExcelUtil.dataToExcel(excelData, LaboratoryReportExcelResponse.class);
+    }
+
+    private String resolveDoctorName(String input) {
+        if (input == null || input.trim().isEmpty()) return "-";
+        try {
+            UUID uuid = UUID.fromString(input);
+            Optional<BaseUser> userOpt = baseUserRepository.findById(uuid);
+            if (userOpt.isPresent()) {
+                BaseUser user = userOpt.get();
+                return user.getName() + " " + user.getSurname();
+            }
+        } catch (IllegalArgumentException e) {
+            // Not a UUID, return as-is
+            return input;
+        }
+        return input;
     }
 }

@@ -23,9 +23,8 @@ public class TeethController {
     private final TeethService teethService;
 
     @PostMapping(path = "/create")
-    public ResponseEntity<Void> create(@Valid @RequestBody CreateTeethRequest createTeethRequest){
-        teethService.create(createTeethRequest);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<TeethResponse> create(@Valid @RequestBody CreateTeethRequest createTeethRequest){
+        return new ResponseEntity<>(teethService.create(createTeethRequest), HttpStatus.CREATED);
     }
 
     @GetMapping(path = "/read")

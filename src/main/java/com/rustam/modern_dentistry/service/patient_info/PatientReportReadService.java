@@ -1,6 +1,8 @@
 package com.rustam.modern_dentistry.service.patient_info;
 
 import com.rustam.modern_dentistry.dao.entity.patient_info.PatientReport;
+import com.rustam.modern_dentistry.dao.entity.users.BaseUser;
+import com.rustam.modern_dentistry.dao.repository.BaseUserRepository;
 import com.rustam.modern_dentistry.dao.repository.patient_info.PatientReportRepository;
 import com.rustam.modern_dentistry.dto.request.criteria.PatientReportCriteria;
 import com.rustam.modern_dentistry.dto.response.read.PatientReportReadResponse;
@@ -14,12 +16,16 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class PatientReportReadService {
 
     PatientReportRepository patientReportRepository;
+    BaseUserRepository baseUserRepository;
 
     @Transactional(readOnly = true)
     public Page<PatientReportReadResponse> read(PatientReportCriteria criteria, Pageable pageable) {
@@ -33,12 +39,28 @@ public class PatientReportReadService {
                 .patientName(report.getPatientName())
                 .teethNo(report.getTeethNo())
                 .operationName(report.getOperationName())
-                .planningDoctorName(report.getPlanningDoctorName())
+                .planningDoctorName(resolveDoctorName(report.getPlanningDoctorName()))
                 .price(report.getPrice())
                 .discount(report.getDiscount())
                 .finalPrice(report.getFinalPrice())
                 .executionDate(report.getExecutionDate())
-                .executionDoctorName(report.getExecutionDoctorName())
+                .executionDoctorName(resolveDoctorName(report.getExecutionDoctorName()))
                 .build());
+    }
+
+    private String resolveDoctorName(String input) {
+        if (input == null || input.trim().isEmpty()) return "-";
+        try {
+            UUID uuid = UUID.fromString(input);
+            Optional<BaseUser> userOpt = baseUserRepository.findById(uuid);
+            if (userOpt.isPresent()) {
+                BaseUser user = userOpt.get();
+                return user.getName() + " " + user.getSurname();
+            }
+        } catch (IllegalArgumentException e) {
+            // Not a UUID, return as-is
+            return input;
+        }
+        return input;
     }
 }
