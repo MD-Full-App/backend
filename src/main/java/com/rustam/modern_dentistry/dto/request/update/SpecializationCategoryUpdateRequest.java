@@ -12,4 +12,5 @@ public class SpecializationCategoryUpdateRequest {
 
     Long id;
     String name;
+    com.rustam.modern_dentistry.dao.entity.enums.status.Status status;
 }

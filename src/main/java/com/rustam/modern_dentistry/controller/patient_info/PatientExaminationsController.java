@@ -23,10 +23,15 @@ public class PatientExaminationsController {
 
     private final PatientExaminationsService patientExaminationsService;
 
-//    @PostMapping(path = "/create")
-//    public ResponseEntity<PatientExaminationsCreateResponse> create(@Valid @RequestBody PatientExaminationsCreateRequest patientExaminationsCreateRequest) {
-//        return new ResponseEntity<>(patientExaminationsService.create(patientExaminationsCreateRequest), HttpStatus.OK);
-//    }
+    @PostMapping(path = "/create")
+    public ResponseEntity<PatientExaminationsCreateResponse> create(@RequestBody PatientExaminationsCreateRequest request) {
+        return new ResponseEntity<>(patientExaminationsService.create(request), HttpStatus.CREATED);
+    }
+
+    @GetMapping(path = "/patient/{patientId}")
+    public ResponseEntity<List<PatientExaminationsResponse>> readByPatientId(@PathVariable Long patientId) {
+        return ResponseEntity.ok(patientExaminationsService.readByPatientId(patientId));
+    }
 
     @PostMapping(path = "/see-historical-election-dental-examinations")
     public ResponseEntity<List<PatientExaminationsResponse>> seeHistoricalElectionDentalExaminations(@RequestBody RequestToSeeTheExaminations requestToSeeTheExaminations) {

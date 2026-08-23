@@ -31,4 +31,10 @@ public class OrderFromWarehouseReadResponse {
     Integer number;
 
     Long sumQuantity;
+
+    com.rustam.modern_dentistry.dao.entity.enums.status.PendingStatus pendingStatus;
+
+    Long sendAmount;
+
+    Long incomingQuantity;
 }

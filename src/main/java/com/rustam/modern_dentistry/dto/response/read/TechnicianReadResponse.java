@@ -16,6 +16,7 @@ public class TechnicianReadResponse {
     String surname;
     String patronymic;
     LocalDate birthDate;
+    LocalDate dateOfBirth;
     String phone;
     String phone2;
     String homePhone;

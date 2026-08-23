@@ -26,6 +26,8 @@ public class OrderFromWarehouseCreateRequest {
     @NotNull
     String cabinetName;
 
+    String personWhoPlacedOrder;
+
     List<OrderFromWarehouseProductRequest> orderFromWarehouseProductRequests;
 
     String description;

@@ -19,12 +19,24 @@ import java.util.UUID;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class PatientCreateRequest {
     @NotBlank(message = "Ad boş ola bilməz")
+    @Pattern(
+            regexp = "^[a-zA-ZƏəIıİiÇçŞşĞğÖöÜü]+$",
+            message = "Ad yalnız hərflərdən ibarət olmalıdır (rəqəm və boşluq istifadə edilə bilməz)"
+    )
     @Size(min = 3, max = 20, message = "Ad 3-20 simvol arasında olmalıdır")
     String name;
     @NotBlank(message = "Soyad boş ola bilməz")
+    @Pattern(
+            regexp = "^[a-zA-ZƏəIıİiÇçŞşĞğÖöÜü]+$",
+            message = "Soyad yalnız hərflərdən ibarət olmalıdır (rəqəm və boşluq istifadə edilə bilməz)"
+    )
     @Size(min = 3, max = 20, message = "Soyad 3-20 simvol arasında olmalıdır")
     String surname;
     @NotBlank(message = "Ata adı boş ola bilməz")
+    @Pattern(
+            regexp = "^[a-zA-ZƏəIıİiÇçŞşĞğÖöÜü]+$",
+            message = "Ata adı yalnız hərflərdən ibarət olmalıdır (rəqəm və boşluq istifadə edilə bilməz)"
+    )
     @Size(min = 3, max = 20, message = "Ata adı 3-20 simvol arasında olmalıdır")
     String patronymic;
     @Pattern(
@@ -32,28 +44,31 @@ public class PatientCreateRequest {
             message = "FIN kod yalnız böyük hərflər və rəqəmlərdən ibarət 7 simvol olmalıdır."
     )
     String finCode;
-    @NotNull(message = "zəhmət olmasa cinsiyyəti daxil edin")
+    @NotNull(message = "Zəhmət olmasa cinsiyyəti daxil edin")
     GenderStatus genderStatus;
     LocalDate dateOfBirth;
-    @NotNull(message = "zəhmət olmasa qiymət kategoriyasını daxil edin")
-    String  priceCategoryName;
+    @NotNull(message = "Zəhmət olmasa qiymət kateqoriyasını daxil edin")
+    String priceCategoryName;
     String specializationName;
-    @NotNull(message = "zəhmət olmasa Həkimi seçin daxil edin")
+    @NotNull(message = "Zəhmət olmasa həkimi seçin")
     String doctorId; //doctor_id -sine gore gedib tapacaq
-    @Pattern(regexp = "\\(\\d{3}\\)-\\d{3}-\\d{4}", message = "Please enter your phone number in the format (000)-000-0000.")
+    @Pattern(
+            regexp = "^\\((?!000)\\d{3}\\)-(?!000-00-00)(?!000-0000)(?!0000000)\\d{3}-(?:\\d{2}-\\d{2}|\\d{4})$",
+            message = "Düzgün telefon nömrəsi daxil edin (məs: (050)-123-45-67). 000 ilə başlayan və ya saxta nömrələr qəbul edilmir."
+    )
     String phone;
     @Pattern(
-            regexp = "^$|\\(\\d{3}\\)-\\d{3}-\\d{4}",
-            message = "Please enter your phone number in the format (000)-000-0000."
+            regexp = "^$|^\\((?!000)\\d{3}\\)-(?!000-00-00)(?!000-0000)(?!0000000)\\d{3}-(?:\\d{2}-\\d{2}|\\d{4})$",
+            message = "Düzgün iş nömrəsi daxil edin (məs: (012)-123-45-67)."
     )
     String workPhone;
     @Pattern(
-            regexp = "^$|\\(\\d{3}\\)-\\d{3}-\\d{4}",
-            message = "Please enter your phone number in the format (000)-000-0000."
+            regexp = "^$|^\\((?!000)\\d{3}\\)-(?!000-00-00)(?!000-0000)(?!0000000)\\d{3}-(?:\\d{2}-\\d{2}|\\d{4})$",
+            message = "Düzgün ev telefonu daxil edin (məs: (012)-123-45-67)."
     )
     String homePhone;
     String homeAddress;
     String workAddress;
-    @Pattern(regexp = "^$|^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", message = "Enter a valid email address.")
+    @Pattern(regexp = "^$|^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", message = "Düzgün e-poçt ünvanı daxil edin.")
     String email;
 }

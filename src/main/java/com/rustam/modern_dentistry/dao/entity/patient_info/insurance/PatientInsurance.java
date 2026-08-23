@@ -52,6 +52,8 @@ public class PatientInsurance {
 
     @PrePersist
     void prePersist() {
-        status = Status.PASSIVE;
+        if (status == null) {
+            status = Status.ACTIVE;
+        }
     }
 }

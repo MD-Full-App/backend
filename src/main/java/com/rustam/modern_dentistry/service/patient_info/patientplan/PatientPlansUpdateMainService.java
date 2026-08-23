@@ -12,6 +12,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@Transactional
 public class PatientPlansUpdateMainService {
 
     PatientPlanMainRepository patientPlanMainRepository;
@@ -40,10 +42,8 @@ public class PatientPlansUpdateMainService {
     }
 
     public PatientPlanMain findByIdAndStatusAndActionStatus(UUID id) {
-        return patientPlansMainMapper.toReadById(
-                patientPlanMainRepository.findByIdAndStatusInAndActionStatusIn(id, List.of("A","C"),List.of("A","C"))
-                        .orElseThrow(() -> new NotFoundException("patient plan main does not found"))
-        );
+        return patientPlanMainRepository.findByIdAndStatusInAndActionStatusIn(id, List.of("A","C"),List.of("A","C"))
+                .orElseThrow(() -> new NotFoundException("patient plan main does not found"));
     }
 
 }

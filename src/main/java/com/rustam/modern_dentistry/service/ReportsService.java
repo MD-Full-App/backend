@@ -177,7 +177,7 @@ public class ReportsService {
                 .collect(Collectors.toList());
 
         // 8. Collections Chart Grouping
-        List<CollectionsChartItem> collectionsChart = getChartData(payments, period);
+        List<CollectionsChartItem> collectionsChart = getChartData(payments, reports, period);
 
         // 9. Overdue Invoices & Aging Receivables
         LocalDate today = LocalDate.now();
@@ -235,6 +235,8 @@ public class ReportsService {
             }
         }
 
+        BigDecimal effectiveCollections = cashCollected.compareTo(BigDecimal.ZERO) > 0 ? cashCollected : production;
+
         return DashboardReportResponse.builder()
                 .cashCollected(cashCollected)
                 .patientCredit(BigDecimal.ZERO)
@@ -242,10 +244,11 @@ public class ReportsService {
                 .avgTicket(avgTicket)
                 .paymentsCount(paymentsCount)
                 .treatmentsCount(treatmentsCount)
+                .invoicesCount(invoices.size())
                 .totalInvoiced(totalInvoiced)
                 .outstandingBalance(outstandingBalance)
                 .overdueInvoicesCount(overdueInvoices.size())
-                .collectionsTotal(cashCollected)
+                .collectionsTotal(effectiveCollections)
                 .newPatients((int) newPatientsCount)
                 .noShowRate(noShowRate)
                 .agingReceivables(agingReceivables)
@@ -415,7 +418,7 @@ public class ReportsService {
         return ExcelUtil.dataToExcel(excelData, PaymentExcelResponse.class);
     }
 
-    private List<CollectionsChartItem> getChartData(List<Payment> payments, String period) {
+    private List<CollectionsChartItem> getChartData(List<Payment> payments, List<PatientReport> reports, String period) {
         DateTimeFormatter formatter;
         if ("bu_hefte".equalsIgnoreCase(period)) {
             formatter = DateTimeFormatter.ofPattern("EEE", new Locale("az"));
@@ -425,19 +428,41 @@ public class ReportsService {
             formatter = DateTimeFormatter.ofPattern("MMM dd", new Locale("az"));
         }
 
-        Map<String, BigDecimal> grouped = payments.stream()
-                .collect(Collectors.groupingBy(
-                        p -> p.getPaymentDate().format(formatter),
-                        TreeMap::new,
-                        Collectors.mapping(
-                                Payment::getAmount,
-                                Collectors.reducing(BigDecimal.ZERO, BigDecimal::add)
-                        )
-                ));
+        if (payments != null && !payments.isEmpty()) {
+            Map<LocalDate, BigDecimal> dateGrouped = payments.stream()
+                    .filter(p -> p.getPaymentDate() != null)
+                    .collect(Collectors.groupingBy(
+                            Payment::getPaymentDate,
+                            TreeMap::new,
+                            Collectors.mapping(
+                                    p -> p.getAmount() != null ? p.getAmount() : BigDecimal.ZERO,
+                                    Collectors.reducing(BigDecimal.ZERO, BigDecimal::add)
+                            )
+                    ));
 
-        return grouped.entrySet().stream()
-                .map(e -> new CollectionsChartItem(e.getKey(), e.getValue()))
-                .collect(Collectors.toList());
+            return dateGrouped.entrySet().stream()
+                    .map(e -> new CollectionsChartItem(e.getKey().format(formatter), e.getValue()))
+                    .collect(Collectors.toList());
+        }
+
+        if (reports != null && !reports.isEmpty()) {
+            Map<LocalDate, BigDecimal> dateGrouped = reports.stream()
+                    .filter(r -> r.getExecutionDate() != null)
+                    .collect(Collectors.groupingBy(
+                            r -> Instant.ofEpochMilli(r.getExecutionDate()).atZone(ZoneId.systemDefault()).toLocalDate(),
+                            TreeMap::new,
+                            Collectors.mapping(
+                                    r -> r.getFinalPrice() != null ? r.getFinalPrice() : BigDecimal.ZERO,
+                                    Collectors.reducing(BigDecimal.ZERO, BigDecimal::add)
+                            )
+                    ));
+
+            return dateGrouped.entrySet().stream()
+                    .map(e -> new CollectionsChartItem(e.getKey().format(formatter), e.getValue()))
+                    .collect(Collectors.toList());
+        }
+
+        return Collections.emptyList();
     }
 
     private LocalDate parseDateSafely(String dateStr) {

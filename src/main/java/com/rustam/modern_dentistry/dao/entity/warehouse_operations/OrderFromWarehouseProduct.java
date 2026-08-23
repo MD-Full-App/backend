@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.math.BigDecimal;
+
 import static jakarta.persistence.FetchType.LAZY;
 
 @Entity
@@ -50,4 +52,7 @@ public class OrderFromWarehouseProduct {
     Long warehouseEntryProductId;
 
     Long quantity;
+
+    @Column(name = "price")
+    BigDecimal price;
 }

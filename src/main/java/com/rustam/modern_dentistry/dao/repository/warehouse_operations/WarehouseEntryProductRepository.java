@@ -9,4 +9,10 @@ import java.util.Optional;
 public interface WarehouseEntryProductRepository extends JpaRepository<WarehouseEntryProduct,Long> {
 
     List<WarehouseEntryProduct> findAllByIdAndWarehouseEntryIdAndCategoryIdAndProductId(Long id,Long warehouseEntryId, Long categoryId, Long productId);
+
+    List<WarehouseEntryProduct> findByWarehouseEntryIdAndProductId(Long warehouseEntryId, Long productId);
+
+    List<WarehouseEntryProduct> findByProductId(Long productId);
+
+    List<WarehouseEntryProduct> findByProductName(String productName);
 }

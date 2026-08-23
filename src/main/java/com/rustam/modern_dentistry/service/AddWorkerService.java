@@ -43,37 +43,55 @@ public class AddWorkerService {
     PasswordEncoder passwordEncoder;
 
     public AddWorkerCreateResponse create(AddWorkerCreateRequest dto) {
-        if (dto.getFinCode() != null) {
-            dto.setFinCode(dto.getFinCode().toUpperCase());
-        }
-        System.out.println("📥 Backend'ə gələn DTO:");
-        System.out.println("  colorCode: " + dto.getColorCode());
-        System.out.println("  experience: " + dto.getExperience());
-        System.out.println("  address: " + dto.getAddress());
-        System.out.println("  degree: " + dto.getDegree());
-        
-        Set<Permission> newPermissions = dto.getPermissions().stream()
-                .map(permissionService::findByName)
-                .collect(Collectors.toSet());
-
-        if (dto.getFinCode() != null && !dto.getFinCode().trim().isEmpty()) {
+        if (dto.getFinCode() != null && dto.getFinCode().trim().isEmpty()) {
+            dto.setFinCode(null);
+        } else if (dto.getFinCode() != null) {
             dto.setFinCode(dto.getFinCode().trim().toUpperCase());
+        }
+
+        if (dto.getEmail() != null && dto.getEmail().trim().isEmpty()) {
+            dto.setEmail(null);
+        } else if (dto.getEmail() != null) {
+            dto.setEmail(dto.getEmail().trim());
+        }
+
+        if (dto.getUsername() != null) {
+            dto.setUsername(dto.getUsername().trim());
+        }
+
+        if (dto.getFinCode() != null) {
             if (baseUserRepository.existsByFinCodeIgnoreCase(dto.getFinCode())) {
                 throw new ExistsException("Bu FIN kod artıq sistemdə var");
             }
         }
-        if (dto.getUsername() != null && !dto.getUsername().trim().isEmpty()) {
-            dto.setUsername(dto.getUsername().trim());
+        if (dto.getUsername() != null && !dto.getUsername().isEmpty()) {
             if (baseUserRepository.existsByUsernameIgnoreCase(dto.getUsername())) {
                 throw new ExistsException("Bu istifadəçi adı artıq sistemdə var");
             }
         }
-        if (dto.getEmail() != null && !dto.getEmail().trim().isEmpty()) {
-            dto.setEmail(dto.getEmail().trim());
+        if (dto.getEmail() != null) {
             if (baseUserRepository.existsByEmailIgnoreCase(dto.getEmail())) {
                 throw new ExistsException("Bu e-poçt ünvanı artıq sistemdə var");
             }
         }
+
+        Set<Permission> newPermissions = (dto.getPermissions() == null)
+                ? new HashSet<>()
+                : dto.getPermissions().stream()
+                    .filter(p -> p != null && !p.trim().isEmpty())
+                    .map(name -> {
+                        try {
+                            return permissionService.findByName(name.trim());
+                        } catch (Exception e) {
+                            try {
+                                return permissionService.findById(Long.parseLong(name.trim()));
+                            } catch (Exception ex) {
+                                return null;
+                            }
+                        }
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
 
         BaseUser baseUser = addWorkerMapper.dtoToEntity(new BaseUser(), dto);
         baseUser.setPassword(passwordEncoder.encode(dto.getPassword()));
@@ -116,37 +134,63 @@ public class AddWorkerService {
 
     @Transactional
     public AddWorkerUpdateResponse update(AddWorkerUpdateRequest dto) {
-        if (dto.getFinCode() != null) {
-            dto.setFinCode(dto.getFinCode().toUpperCase());
-        }
-        BaseUser baseUser = baseUserRepository.findByIdWithPermissions(dto.getId())
-                .orElseThrow(() -> new UserNotFountException("No such user found."));
-
-        Set<Permission> newPermissions = dto.getPermissions().stream()
-                .map(permissionService::findByName)
-                .collect(Collectors.toSet());
-
-        if (dto.getFinCode() != null && !dto.getFinCode().trim().isEmpty()) {
+        if (dto.getFinCode() != null && dto.getFinCode().trim().isEmpty()) {
+            dto.setFinCode(null);
+        } else if (dto.getFinCode() != null) {
             dto.setFinCode(dto.getFinCode().trim().toUpperCase());
+        }
+
+        if (dto.getEmail() != null && dto.getEmail().trim().isEmpty()) {
+            dto.setEmail(null);
+        } else if (dto.getEmail() != null) {
+            dto.setEmail(dto.getEmail().trim());
+        }
+
+        if (dto.getUsername() != null) {
+            dto.setUsername(dto.getUsername().trim());
+        }
+
+        BaseUser baseUser = baseUserRepository.findByIdWithPermissions(dto.getId())
+                .orElseThrow(() -> new UserNotFountException("İstifadəçi tapılmadı."));
+
+        Set<Permission> newPermissions = (dto.getPermissions() == null)
+                ? new HashSet<>()
+                : dto.getPermissions().stream()
+                    .filter(p -> p != null && !p.trim().isEmpty())
+                    .map(name -> {
+                        try {
+                            return permissionService.findByName(name.trim());
+                        } catch (Exception e) {
+                            try {
+                                return permissionService.findById(Long.parseLong(name.trim()));
+                            } catch (Exception ex) {
+                                return null;
+                            }
+                        }
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+
+        if (dto.getFinCode() != null) {
             if (baseUserRepository.existsByFinCodeIgnoreCaseAndIdNot(dto.getFinCode(), dto.getId())) {
                 throw new ExistsException("Bu FIN kod artıq sistemdə var");
             }
         }
-        if (dto.getUsername() != null && !dto.getUsername().trim().isEmpty()) {
-            dto.setUsername(dto.getUsername().trim());
+        if (dto.getUsername() != null && !dto.getUsername().isEmpty()) {
             if (baseUserRepository.existsByUsernameIgnoreCaseAndIdNot(dto.getUsername(), dto.getId())) {
                 throw new ExistsException("Bu istifadəçi adı artıq sistemdə var");
             }
         }
-        if (dto.getEmail() != null && !dto.getEmail().trim().isEmpty()) {
-            dto.setEmail(dto.getEmail().trim());
+        if (dto.getEmail() != null) {
             if (baseUserRepository.existsByEmailIgnoreCaseAndIdNot(dto.getEmail(), dto.getId())) {
                 throw new ExistsException("Bu e-poçt ünvanı artıq sistemdə var");
             }
         }
         BaseUser entityUpdate = addWorkerMapper.dtoToEntityUpdate(baseUser, dto);
         baseUser.setPermissions(newPermissions);
-        baseUser.setPassword(passwordEncoder.encode(dto.getPassword()));
+        if (dto.getPassword() != null && !dto.getPassword().trim().isEmpty()) {
+            baseUser.setPassword(passwordEncoder.encode(dto.getPassword()));
+        }
         baseUserRepository.save(entityUpdate);
         return addWorkerMapper.updateDtoToResponse(entityUpdate);
     }

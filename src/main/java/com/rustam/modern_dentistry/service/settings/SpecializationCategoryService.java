@@ -62,8 +62,15 @@ public class SpecializationCategoryService {
 
     public SpecializationCategoryResponse update(SpecializationCategoryUpdateRequest specializationCategoryUpdateRequest) {
         SpecializationCategory specializationCategory = readById(specializationCategoryUpdateRequest.getId());
-        validate(specializationCategoryUpdateRequest.getName());
-        specializationCategory.setName(specializationCategoryUpdateRequest.getName());
+        if (specializationCategoryUpdateRequest.getName() != null && !specializationCategoryUpdateRequest.getName().trim().isEmpty()) {
+            if (!specializationCategory.getName().equalsIgnoreCase(specializationCategoryUpdateRequest.getName().trim())) {
+                validate(specializationCategoryUpdateRequest.getName().trim());
+            }
+            specializationCategory.setName(specializationCategoryUpdateRequest.getName().trim());
+        }
+        if (specializationCategoryUpdateRequest.getStatus() != null) {
+            specializationCategory.setStatus(specializationCategoryUpdateRequest.getStatus());
+        }
         return specializationCategoryMapper.toDto(specializationCategoryRepository.save(specializationCategory));
     }
 

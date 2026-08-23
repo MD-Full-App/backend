@@ -14,6 +14,8 @@ public interface PatientExaminationsRepository extends JpaRepository<PatientExam
             "WHERE pe.patient.id = :patientId AND pe.toothNumber = :toothNumber AND pe.diagnosis = :diagnosis")
     boolean existsPatientExaminationsByPatientAndToothNumberAndDiagnosis(Long patientId, Long toothNumber,String diagnosis);
 
+    List<PatientExaminations> findByPatient_Id(Long patientId);
+
     @Query("SELECT new com.rustam.modern_dentistry.dto.response.read.PatientExaminationsResponse(p.id, p.toothNumber,p.diagnosis,d.name) " +
             "FROM PatientExaminations p JOIN BaseUser d")
     List<PatientExaminationsResponse> findAllPatientExaminations();

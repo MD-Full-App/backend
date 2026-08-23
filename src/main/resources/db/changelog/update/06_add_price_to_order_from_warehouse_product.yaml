@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 6_add_price_to_order_from_warehouse_product
+      author: rustam
+      changes:
+        - addColumn:
+            tableName: order_from_warehouse_product
+            columns:
+              - column:
+                  name: price
+                  type: DECIMAL(19, 2)

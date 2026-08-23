@@ -28,6 +28,7 @@ public class PatientPlanMain extends CoreEntity {
     String key;
 
     @OneToMany(mappedBy = "patientPlanMain", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
     List<PatientPlan> patientPlans;
 
     @ManyToOne
@@ -45,6 +46,7 @@ public class PatientPlanMain extends CoreEntity {
             orphanRemoval = true,
             fetch = FetchType.LAZY
     )
+    @ToString.Exclude
     List<PatientTreatment> treatments;
 
 }

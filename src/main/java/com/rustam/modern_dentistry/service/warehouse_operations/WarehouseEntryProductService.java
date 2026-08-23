@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 
@@ -57,14 +58,68 @@ public class WarehouseEntryProductService {
         warehouseEntryProductRepository.save(warehouseEntryProduct);
     }
 
-    public WarehouseEntryProduct findAllByIdAndWarehouseEntryIdAndCategoryIdAndProductId(Long id,Long warehouseEntryId, Long categoryId, Long productId) {
-        List<WarehouseEntryProduct> products =
-                warehouseEntryProductRepository.findAllByIdAndWarehouseEntryIdAndCategoryIdAndProductId(
-                        id,warehouseEntryId,categoryId,productId);
+    public BigDecimal findPriceForProduct(Long warehouseEntryProductId, Long warehouseEntryId, Long productId, String productName) {
+        if (warehouseEntryProductId != null) {
+            WarehouseEntryProduct wep = findByIdOrNull(warehouseEntryProductId);
+            if (wep != null && wep.getPrice() != null) {
+                return wep.getPrice();
+            }
+        }
+        if (warehouseEntryId != null && productId != null) {
+            List<WarehouseEntryProduct> list = warehouseEntryProductRepository.findByWarehouseEntryIdAndProductId(warehouseEntryId, productId);
+            for (WarehouseEntryProduct wep : list) {
+                if (wep.getPrice() != null) {
+                    return wep.getPrice();
+                }
+            }
+        }
+        if (productId != null) {
+            List<WarehouseEntryProduct> list = warehouseEntryProductRepository.findByProductId(productId);
+            for (WarehouseEntryProduct wep : list) {
+                if (wep.getPrice() != null) {
+                    return wep.getPrice();
+                }
+            }
+        }
+        if (productName != null && !productName.isBlank()) {
+            List<WarehouseEntryProduct> list = warehouseEntryProductRepository.findByProductName(productName);
+            for (WarehouseEntryProduct wep : list) {
+                if (wep.getPrice() != null) {
+                    return wep.getPrice();
+                }
+            }
+        }
+        return null;
+    }
 
-        return products.stream()
-                .findFirst()
-                .orElseThrow(() -> new NotFoundException("No matching WarehouseEntryProduct found"));
+    public WarehouseEntryProduct findAllByIdAndWarehouseEntryIdAndCategoryIdAndProductId(Long id, Long warehouseEntryId, Long categoryId, Long productId) {
+        if (id != null && warehouseEntryId != null && categoryId != null && productId != null) {
+            List<WarehouseEntryProduct> products =
+                    warehouseEntryProductRepository.findAllByIdAndWarehouseEntryIdAndCategoryIdAndProductId(
+                            id, warehouseEntryId, categoryId, productId);
+            if (!products.isEmpty()) {
+                return products.get(0);
+            }
+        }
+        if (id != null) {
+            WarehouseEntryProduct wep = findByIdOrNull(id);
+            if (wep != null) {
+                return wep;
+            }
+        }
+        if (warehouseEntryId != null && productId != null) {
+            List<WarehouseEntryProduct> list = warehouseEntryProductRepository.findByWarehouseEntryIdAndProductId(warehouseEntryId, productId);
+            if (!list.isEmpty()) {
+                return list.get(0);
+            }
+        }
+        if (productId != null) {
+            List<WarehouseEntryProduct> list = warehouseEntryProductRepository.findByProductId(productId);
+            if (!list.isEmpty()) {
+                return list.get(0);
+            }
+        }
+        throw new NotFoundException("No matching WarehouseEntryProduct found");
     }
 
     public void delete(WarehouseEntryProduct entryProduct) {

@@ -19,7 +19,7 @@ public interface PatientRepository extends JpaRepository<Patient, Long>, JpaSpec
     @EntityGraph(attributePaths = {"reservations", "generalCalendars", "examinations"})
     Optional<Patient> findById(Long id);
 
-    @EntityGraph(attributePaths = {"baseUser"})
+    @EntityGraph(attributePaths = {"baseUser", "priceCategory", "specializationCategory", "patientBlacklist"})
     List<Patient> findAll();
     
     boolean existsByEmail(String email);

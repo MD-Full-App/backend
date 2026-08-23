@@ -23,13 +23,13 @@ public class PatientInsuranceBalanceController {
 
     @PostMapping(path = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> createUser(@RequestPart("obj") @Valid PatInsuranceBalanceCreateReq patBalance,
-                                           @RequestPart("file") MultipartFile file) {
+                                           @RequestPart(value = "file", required = false) MultipartFile file) {
         patientInsuranceBalanceService.create(patBalance, file);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/read")
-    public ResponseEntity<List<PatInsuranceBalanceReadResponse>> read(@RequestParam Long patientInsuranceId) {
+    public ResponseEntity<List<PatInsuranceBalanceReadResponse>> read(@RequestParam(required = false) Long patientInsuranceId) {
         return ResponseEntity.ok(patientInsuranceBalanceService.read(patientInsuranceId));
     }
 
@@ -38,10 +38,10 @@ public class PatientInsuranceBalanceController {
         return ResponseEntity.ok(patientInsuranceBalanceService.readById(id));
     }
 
-    @PutMapping("/update/{id}")
+    @PutMapping(path = "/update/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> update(@PathVariable Long id,
                                        @RequestPart("obj") PatInsuranceBalanceUpdateReq request,
-                                       @RequestPart("file") MultipartFile file) {
+                                       @RequestPart(value = "file", required = false) MultipartFile file) {
         patientInsuranceBalanceService.update(id, request, file);
         return ResponseEntity.ok().build();
     }

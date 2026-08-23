@@ -12,8 +12,15 @@ import java.math.BigDecimal;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class OrderFromWarehouseProductResponse {
 
+    Long id;
+    Long categoryId;
+    Long productId;
+    Long warehouseEntryId;
+    Long warehouseEntryProductId;
+    String warehouseEntryProductName;
     String categoryName;
     String productName;
     String productTitle;
     Long quantity;
+    BigDecimal price;
 }

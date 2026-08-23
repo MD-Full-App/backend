@@ -1,6 +1,7 @@
 package com.rustam.modern_dentistry.dto.response.read;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.rustam.modern_dentistry.dao.entity.enums.status.PendingStatus;
 import com.rustam.modern_dentistry.dao.entity.enums.status.Room;
 import com.rustam.modern_dentistry.dao.entity.warehouse_operations.OrderFromWarehouse;
 import com.rustam.modern_dentistry.dao.entity.warehouse_operations.WarehouseRemovalProduct;
@@ -21,6 +22,8 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class WarehouseRemovalReadResponse {
 
+    Long id;
+
     LocalDate date;
 
     LocalTime time;
@@ -38,4 +41,8 @@ public class WarehouseRemovalReadResponse {
     Long orderAmount;
 
     Long remainingAmount;
+
+    String description;
+
+    PendingStatus status;
 }

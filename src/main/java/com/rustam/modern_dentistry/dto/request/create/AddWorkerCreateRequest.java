@@ -18,8 +18,12 @@ import java.util.Set;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AddWorkerCreateRequest {
-    @NotBlank(message = "İstifadəçi Ad boş ola bilməz")
-    @Size(min = 3, max = 20, message = "İstifadəçi Adı 3-20 simvol arasında olmalıdır")
+    @NotBlank(message = "İstifadəçi adı boş ola bilməz")
+    @Pattern(
+            regexp = "^[a-zA-ZƏəIıİiÇçŞşĞğÖöÜü]+$",
+            message = "İstifadəçi adı yalnız hərflərdən ibarət olmalıdır (rəqəm və boşluq istifadə edilə bilməz)"
+    )
+    @Size(min = 3, max = 20, message = "İstifadəçi adı 3-20 simvol arasında olmalıdır")
     String username;
     @Pattern(
             regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!_]).{8,}$",
@@ -27,13 +31,25 @@ public class AddWorkerCreateRequest {
     )
     String password;
     @NotBlank(message = "Ad boş ola bilməz")
+    @Pattern(
+            regexp = "^[a-zA-ZƏəIıİiÇçŞşĞğÖöÜü]+$",
+            message = "Ad yalnız hərflərdən ibarət olmalıdır (rəqəm və boşluq istifadə edilə bilməz)"
+    )
     @Size(min = 3, max = 20, message = "Ad 3-20 simvol arasında olmalıdır")
     String name;
     @NotBlank(message = "Soyad boş ola bilməz")
+    @Pattern(
+            regexp = "^[a-zA-ZƏəIıİiÇçŞşĞğÖöÜü]+$",
+            message = "Soyad yalnız hərflərdən ibarət olmalıdır (rəqəm və boşluq istifadə edilə bilməz)"
+    )
     @Size(min = 3, max = 20, message = "Soyad 3-20 simvol arasında olmalıdır")
     String surname;
-    @NotBlank(message = "Ata Adı boş ola bilməz")
-    @Size(min = 3, max = 20, message = "Ata Adı 3-20 simvol arasında olmalıdır")
+    @NotBlank(message = "Ata adı boş ola bilməz")
+    @Pattern(
+            regexp = "^[a-zA-ZƏəIıİiÇçŞşĞğÖöÜü]+$",
+            message = "Ata adı yalnız hərflərdən ibarət olmalıdır (rəqəm və boşluq istifadə edilə bilməz)"
+    )
+    @Size(min = 3, max = 20, message = "Ata adı 3-20 simvol arasında olmalıdır")
     String patronymic;
     @Pattern(
             regexp = "^$|^[a-zA-Z0-9]{7}$",
@@ -41,20 +57,32 @@ public class AddWorkerCreateRequest {
     )
     String finCode;
     String colorCode;
-    @NotNull
+    @NotNull(message = "Cinsiyyət seçilməlidir")
     GenderStatus genderStatus;
-    @NotNull
+    @NotNull(message = "Doğum tarixi tələb olunur")
     LocalDate dateOfBirth;
     String degree;
-    @Pattern(regexp = "\\(\\d{3}\\)-\\d{3}-\\d{2}-\\d{2}", message = "Please enter your phone number in the format (000)-000-00-00.")
+    @Pattern(
+            regexp = "^\\((?!000)\\d{3}\\)-(?!000-00-00)(?!000-0000)(?!0000000)\\d{3}-(?:\\d{2}-\\d{2}|\\d{4})$",
+            message = "Düzgün telefon nömrəsi daxil edin (məs: (050)-123-45-67). 000 ilə başlayan və ya saxta nömrələr qəbul edilmir."
+    )
     String phone;
-    @Pattern(regexp = "\\(\\d{3}\\)-\\d{3}-\\d{2}-\\d{2}", message = "Please enter your phone number in the format (000)-000-00-00.")
+    @Pattern(
+            regexp = "^$|^\\((?!000)\\d{3}\\)-(?!000-00-00)(?!000-0000)(?!0000000)\\d{3}-(?:\\d{2}-\\d{2}|\\d{4})$",
+            message = "Düzgün mobil nömrə 2 daxil edin (məs: (050)-123-45-67)."
+    )
     String phone2;
-    @Pattern(regexp = "\\(\\d{3}\\)-\\d{3}-\\d{2}-\\d{2}", message = "Please enter your phone number in the format (000)-000-00-00.")
+    @Pattern(
+            regexp = "^$|^\\((?!000)\\d{3}\\)-(?!000-00-00)(?!000-0000)(?!0000000)\\d{3}-(?:\\d{2}-\\d{2}|\\d{4})$",
+            message = "Düzgün mobil nömrə 3 daxil edin (məs: (050)-123-45-67)."
+    )
     String phone3;
-    @Pattern(regexp = "\\(\\d{3}\\)-\\d{3}-\\d{2}-\\d{2}", message = "Please enter your phone number in the format (000)-000-00-00.")
+    @Pattern(
+            regexp = "^$|^\\((?!000)\\d{3}\\)-(?!000-00-00)(?!000-0000)(?!0000000)\\d{3}-(?:\\d{2}-\\d{2}|\\d{4})$",
+            message = "Düzgün ev telefonu nömrəsi daxil edin (məs: (012)-123-45-67)."
+    )
     String homePhone;
-    @Pattern(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", message = "Enter a valid email address.")
+    @Pattern(regexp = "^$|^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", message = "Düzgün e-poçt ünvanı daxil edin.")
     String email;
     String address;
     Integer experience;

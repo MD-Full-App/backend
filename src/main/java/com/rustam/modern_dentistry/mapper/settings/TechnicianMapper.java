@@ -18,6 +18,8 @@ public interface TechnicianMapper {
     @Mapping(target = "password", ignore = true)
     Technician toEntity(TechnicianCreateRequest technicianCreateRequest);
 
+    @Mapping(target = "birthDate", source = "dateOfBirth")
+    @Mapping(target = "dateOfBirth", source = "dateOfBirth")
     TechnicianReadResponse toReadDto(Technician technician);
 
     @Mapping(target = "password", ignore = true)

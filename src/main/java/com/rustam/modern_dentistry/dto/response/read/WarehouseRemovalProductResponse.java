@@ -15,6 +15,7 @@ import java.time.LocalTime;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class WarehouseRemovalProductResponse {
+    Long id;
     LocalDate date;
     LocalTime time;
     Long categoryId;
@@ -33,5 +34,6 @@ public class WarehouseRemovalProductResponse {
     String groupId;
 
     Long orderFromWarehouseProductId;
+    java.math.BigDecimal price;
 
 }

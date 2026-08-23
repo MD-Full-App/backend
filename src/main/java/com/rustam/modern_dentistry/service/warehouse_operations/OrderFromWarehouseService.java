@@ -21,6 +21,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -44,7 +45,9 @@ public class OrderFromWarehouseService {
 
     @Transactional
     public OrderFromWarehouseResponse create(OrderFromWarehouseCreateRequest request) {
-        String personWhoPlacedOrder = utilService.getCurrentUserId();
+        String personWhoPlacedOrder = request.getPersonWhoPlacedOrder() != null && !request.getPersonWhoPlacedOrder().isBlank()
+                ? request.getPersonWhoPlacedOrder()
+                : utilService.getCurrentUserId();
         OrderFromWarehouse orderFromWarehouse = OrderFromWarehouse.builder()
                 .date(request.getDate())
                 .time(request.getTime())
@@ -64,12 +67,30 @@ public class OrderFromWarehouseService {
 
     private OrderFromWarehouseResponse buildWarehouseEntryResponse(OrderFromWarehouse orderFromWarehouse, List<OrderFromWarehouseProduct> orderFromWarehouseProducts) {
         List<OrderFromWarehouseProductResponse> productResponses = orderFromWarehouseProducts.stream()
-                .map(p -> OrderFromWarehouseProductResponse.builder()
-                        .categoryName(p.getCategoryName())
-                        .productName(p.getProductName())
-                        .productTitle(p.getProductTitle())
-                        .quantity(p.getQuantity())
-                        .build())
+                .<OrderFromWarehouseProductResponse>map(p -> {
+                    BigDecimal price = p.getPrice();
+                    if (price == null) {
+                        price = warehouseEntryProductService.findPriceForProduct(
+                                p.getWarehouseEntryProductId(),
+                                p.getWarehouseEntryId(),
+                                p.getProductId(),
+                                p.getProductName()
+                        );
+                    }
+                    return OrderFromWarehouseProductResponse.builder()
+                            .id(p.getId())
+                            .categoryId(p.getCategoryId())
+                            .productId(p.getProductId())
+                            .warehouseEntryId(p.getWarehouseEntryId())
+                            .warehouseEntryProductId(p.getWarehouseEntryProductId())
+                            .warehouseEntryProductName(p.getProductName() != null ? p.getProductName() : p.getProductTitle())
+                            .categoryName(p.getCategoryName())
+                            .productName(p.getProductName())
+                            .productTitle(p.getProductTitle())
+                            .quantity(p.getQuantity())
+                            .price(price)
+                            .build();
+                })
                 .collect(Collectors.toList());
 
         return OrderFromWarehouseResponse.builder()
@@ -78,7 +99,7 @@ public class OrderFromWarehouseService {
                 .time(orderFromWarehouse.getTime())
                 .description(orderFromWarehouse.getDescription())
                 .orderFromWarehouseProductResponses(productResponses)
-                .cabinetName(orderFromWarehouse.getCabinet().getCabinetName())
+                .cabinetName(orderFromWarehouse.getCabinet() != null ? orderFromWarehouse.getCabinet().getCabinetName() : null)
                 .personWhoPlacedOrder(orderFromWarehouse.getPersonWhoPlacedOrder())
                 .number(orderFromWarehouse.getNumber())
                 .quantity(orderFromWarehouse.getSumQuantity())
@@ -94,16 +115,39 @@ public class OrderFromWarehouseService {
     private List<OrderFromWarehouseProduct> buildOrderFromWarehouseProducts(OrderFromWarehouseCreateRequest request, OrderFromWarehouse orderFromWarehouse) {
         return request.getOrderFromWarehouseProductRequests().stream()
                 .map(dto -> {
-                    WarehouseEntryProduct warehouseEntryProduct = warehouseEntryProductService.findAllByIdAndWarehouseEntryIdAndCategoryIdAndProductId(dto.getWarehouseEntryProductId(),dto.getWarehouseEntryId(),dto.getCategoryId(),dto.getProductId());
-                    warehouseEntryProductService.decreaseProductQuantity(warehouseEntryProduct.getId(),dto.getQuantity());
+                    WarehouseEntryProduct warehouseEntryProduct = null;
+                    try {
+                        warehouseEntryProduct = warehouseEntryProductService.findAllByIdAndWarehouseEntryIdAndCategoryIdAndProductId(
+                                dto.getWarehouseEntryProductId(), dto.getWarehouseEntryId(), dto.getCategoryId(), dto.getProductId());
+                        if (warehouseEntryProduct != null && warehouseEntryProduct.getId() != null) {
+                            warehouseEntryProductService.decreaseProductQuantity(warehouseEntryProduct.getId(), dto.getQuantity());
+                        }
+                    } catch (Exception e) {
+                        log.warn("WarehouseEntryProduct lookup failed for create item: {}", e.getMessage());
+                    }
+
+                    BigDecimal price = dto.getPrice();
+                    if (price == null && warehouseEntryProduct != null) {
+                        price = warehouseEntryProduct.getPrice();
+                    }
+                    if (price == null) {
+                        price = warehouseEntryProductService.findPriceForProduct(
+                                dto.getWarehouseEntryProductId(),
+                                dto.getWarehouseEntryId(),
+                                dto.getProductId(),
+                                warehouseEntryProduct != null ? warehouseEntryProduct.getProductName() : null
+                        );
+                    }
+
                     return OrderFromWarehouseProduct.builder()
                             .categoryId(dto.getCategoryId())
                             .productId(dto.getProductId())
                             .quantity(dto.getQuantity())
-                            .productName(warehouseEntryProduct.getProductName())
-                            .categoryName(warehouseEntryProduct.getCategoryName())
+                            .price(price)
+                            .productName(warehouseEntryProduct != null ? warehouseEntryProduct.getProductName() : "Product " + dto.getProductId())
+                            .categoryName(warehouseEntryProduct != null ? warehouseEntryProduct.getCategoryName() : "Category " + dto.getCategoryId())
                             .initialQuantity(dto.getQuantity())
-                            .productTitle(warehouseEntryProduct.getProductTitle())
+                            .productTitle(warehouseEntryProduct != null ? warehouseEntryProduct.getProductTitle() : null)
                             .warehouseEntryId(dto.getWarehouseEntryId())
                             .warehouseEntryProductId(dto.getWarehouseEntryProductId())
                             .orderFromWarehouse(orderFromWarehouse)
@@ -139,6 +183,12 @@ public class OrderFromWarehouseService {
     }
 
     public OrderFromWarehouseReadResponse toDto(OrderFromWarehouse entry) {
+        com.rustam.modern_dentistry.dao.entity.enums.status.PendingStatus status = com.rustam.modern_dentistry.dao.entity.enums.status.PendingStatus.WAITING;
+        Long sendAmount = 0L;
+        if (entry.getWarehouseRemoval() != null && entry.getWarehouseRemoval().getSendAmount() != null) {
+            sendAmount = entry.getWarehouseRemoval().getSendAmount();
+        }
+
         return OrderFromWarehouseReadResponse.builder()
                 .id(entry.getId())
                 .date(entry.getDate())
@@ -148,6 +198,9 @@ public class OrderFromWarehouseService {
                 .personWhoPlacedOrder(entry.getPersonWhoPlacedOrder())
                 .number(entry.getNumber())
                 .sumQuantity(entry.getSumQuantity())
+                .sendAmount(sendAmount)
+                .incomingQuantity(sendAmount)
+                .pendingStatus(status)
                 .build();
     }
 
@@ -176,6 +229,7 @@ public class OrderFromWarehouseService {
         utilService.updateFieldIfPresent(orderFromWarehouseUpdateRequest.getDate(), orderFromWarehouse::setDate);
         utilService.updateFieldIfPresent(orderFromWarehouseUpdateRequest.getTime(), orderFromWarehouse::setTime);
         utilService.updateFieldIfPresent(orderFromWarehouseUpdateRequest.getDescription(), orderFromWarehouse::setDescription);
+        utilService.updateFieldIfPresent(orderFromWarehouseUpdateRequest.getPersonWhoPlacedOrder(), orderFromWarehouse::setPersonWhoPlacedOrder);
         utilService.updateFieldIfPresent(cabinetService.findByCabinetName(orderFromWarehouseUpdateRequest.getCabinetName()), orderFromWarehouse::setCabinet);
         if (hasProducts(orderFromWarehouseUpdateRequest)){
             List<OrderFromWarehouseProduct> entryProducts = buildWarehouseEntryUpdateProducts(orderFromWarehouseUpdateRequest, orderFromWarehouse);
@@ -212,13 +266,26 @@ public class OrderFromWarehouseService {
         Set<Long> updatedIds = new HashSet<>();
 
         for (OrderFromWarehouseProductUpdateRequest dto : orderFromWarehouseUpdateRequest.getOrderFromWarehouseProductUpdateRequests()) {
-            WarehouseEntryProduct warehouseEntryProduct = warehouseEntryProductService.findAllByIdAndWarehouseEntryIdAndCategoryIdAndProductId(dto.getWarehouseEntryProductId(),dto.getWarehouseEntryId(),dto.getCategoryId(),dto.getProductId());
+            WarehouseEntryProduct warehouseEntryProduct = null;
+            try {
+                warehouseEntryProduct = warehouseEntryProductService.findAllByIdAndWarehouseEntryIdAndCategoryIdAndProductId(
+                        dto.getWarehouseEntryProductId(), dto.getWarehouseEntryId(), dto.getCategoryId(), dto.getProductId());
+            } catch (Exception e) {
+                log.warn("WarehouseEntryProduct lookup failed during update: {}", e.getMessage());
+            }
 
             if (dto.getOrderFromWarehouseProductId() != null && existingProductsMap.containsKey(dto.getOrderFromWarehouseProductId())) {
                 OrderFromWarehouseProduct existing = existingProductsMap.get(dto.getOrderFromWarehouseProductId());
 
-                warehouseEntryProductService.increaseProductQuantity(dto.getWarehouseEntryProductId(), existing.getQuantity());
-                warehouseEntryProductService.decreaseProductQuantity(dto.getWarehouseEntryProductId(), dto.getQuantity());
+                if (warehouseEntryProduct != null && dto.getWarehouseEntryProductId() != null) {
+                    try {
+                        Long wepIdToIncrease = existing.getWarehouseEntryProductId() != null ? existing.getWarehouseEntryProductId() : dto.getWarehouseEntryProductId();
+                        warehouseEntryProductService.increaseProductQuantity(wepIdToIncrease, existing.getQuantity());
+                        warehouseEntryProductService.decreaseProductQuantity(dto.getWarehouseEntryProductId(), dto.getQuantity());
+                    } catch (Exception e) {
+                        log.warn("Could not update quantities for warehouseEntryProductId: {}", e.getMessage());
+                    }
+                }
 
                 utilService.updateFieldIfPresent(dto.getCategoryId(), existing::setCategoryId);
                 utilService.updateFieldIfPresent(dto.getProductId(), existing::setProductId);
@@ -227,9 +294,28 @@ public class OrderFromWarehouseService {
                 utilService.updateFieldIfPresent(dto.getWarehouseEntryId(), existing::setWarehouseEntryId);
                 utilService.updateFieldIfPresent(dto.getQuantity(), existing::setInitialQuantity);
 
-                existing.setProductName(warehouseEntryProduct.getProductName());
-                existing.setCategoryName(warehouseEntryProduct.getCategoryName());
-                existing.setProductTitle(warehouseEntryProduct.getProductTitle());
+                BigDecimal price = dto.getPrice();
+                if (price == null && warehouseEntryProduct != null) {
+                    price = warehouseEntryProduct.getPrice();
+                }
+                if (price == null) {
+                    price = existing.getPrice();
+                }
+                if (price == null) {
+                    price = warehouseEntryProductService.findPriceForProduct(
+                            dto.getWarehouseEntryProductId(),
+                            dto.getWarehouseEntryId(),
+                            dto.getProductId(),
+                            existing.getProductName()
+                    );
+                }
+                existing.setPrice(price);
+
+                if (warehouseEntryProduct != null) {
+                    existing.setProductName(warehouseEntryProduct.getProductName());
+                    existing.setCategoryName(warehouseEntryProduct.getCategoryName());
+                    existing.setProductTitle(warehouseEntryProduct.getProductTitle());
+                }
 
                 finalList.add(existing);
                 updatedIds.add(dto.getOrderFromWarehouseProductId());
@@ -239,16 +325,36 @@ public class OrderFromWarehouseService {
                     throw new ProductDoesnotQuantityThatMuchException("OrderFromWarehouseProduct with id " + dto.getOrderFromWarehouseProductId() + " not found in this OrderFromWarehouse!");
                 }
 
-                warehouseEntryProductService.decreaseProductQuantity(dto.getProductId(), dto.getQuantity());
+                if (warehouseEntryProduct != null && warehouseEntryProduct.getId() != null) {
+                    try {
+                        warehouseEntryProductService.decreaseProductQuantity(warehouseEntryProduct.getId(), dto.getQuantity());
+                    } catch (Exception e) {
+                        log.warn("Could not decrease product quantity: {}", e.getMessage());
+                    }
+                }
+
+                BigDecimal price = dto.getPrice();
+                if (price == null && warehouseEntryProduct != null) {
+                    price = warehouseEntryProduct.getPrice();
+                }
+                if (price == null) {
+                    price = warehouseEntryProductService.findPriceForProduct(
+                            dto.getWarehouseEntryProductId(),
+                            dto.getWarehouseEntryId(),
+                            dto.getProductId(),
+                            warehouseEntryProduct != null ? warehouseEntryProduct.getProductName() : null
+                    );
+                }
 
                 OrderFromWarehouseProduct newProduct = OrderFromWarehouseProduct.builder()
                         .categoryId(dto.getCategoryId())
                         .productId(dto.getProductId())
                         .quantity(dto.getQuantity())
-                        .productName(warehouseEntryProduct.getProductName())
-                        .categoryName(warehouseEntryProduct.getCategoryName())
+                        .price(price)
+                        .productName(warehouseEntryProduct != null ? warehouseEntryProduct.getProductName() : "Product " + dto.getProductId())
+                        .categoryName(warehouseEntryProduct != null ? warehouseEntryProduct.getCategoryName() : "Category " + dto.getCategoryId())
                         .initialQuantity(dto.getQuantity())
-                        .productTitle(warehouseEntryProduct.getProductTitle())
+                        .productTitle(warehouseEntryProduct != null ? warehouseEntryProduct.getProductTitle() : null)
                         .orderFromWarehouse(orderFromWarehouse)
                         .warehouseEntryId(dto.getWarehouseEntryId())
                         .warehouseEntryProductId(dto.getWarehouseEntryProductId())
@@ -261,7 +367,13 @@ public class OrderFromWarehouseService {
 
         for (OrderFromWarehouseProduct old : existingProductsMap.values()) {
             if (!updatedIds.contains(old.getId())) {
-                finalList.add(old);
+                if (old.getWarehouseEntryProductId() != null) {
+                    try {
+                        warehouseEntryProductService.increaseProductQuantity(old.getWarehouseEntryProductId(), old.getQuantity());
+                    } catch (Exception e) {
+                        log.warn("Could not restore quantity for deleted order product: {}", e.getMessage());
+                    }
+                }
             }
         }
 

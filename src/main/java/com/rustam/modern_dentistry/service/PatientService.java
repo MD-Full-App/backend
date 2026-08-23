@@ -50,26 +50,44 @@ public class PatientService {
         String email = StringUtils.trimToNull(patientCreateRequest.getEmail());
         String finCode = StringUtils.trimToNull(patientCreateRequest.getFinCode());
 
-        validationUtilService.validateUniqueFields(email,finCode);
+        validationUtilService.validateUniqueFields(email, finCode);
 
-        BaseUser doctor = utilService.findByBaseUserId(patientCreateRequest.getDoctorId());
+        BaseUser doctor = null;
+        if (patientCreateRequest.getDoctorId() != null && !patientCreateRequest.getDoctorId().isBlank()) {
+            doctor = utilService.findByBaseUserId(patientCreateRequest.getDoctorId());
+        }
+
+        PriceCategory priceCategory = null;
+        if (patientCreateRequest.getPriceCategoryName() != null && !patientCreateRequest.getPriceCategoryName().isBlank()) {
+            try {
+                priceCategory = priceCategoryService.findByName(patientCreateRequest.getPriceCategoryName());
+            } catch (Exception ignored) {}
+        }
+
+        SpecializationCategory specializationCategory = null;
+        if (patientCreateRequest.getSpecializationName() != null && !patientCreateRequest.getSpecializationName().isBlank()) {
+            try {
+                specializationCategory = specializationCategoryService.findByName(patientCreateRequest.getSpecializationName());
+            } catch (Exception ignored) {}
+        }
+
         Patient patient = Patient.builder()
-                .name(patientCreateRequest.getName())
-                .surname(patientCreateRequest.getSurname())
-                .patronymic(patientCreateRequest.getPatronymic())
+                .name(patientCreateRequest.getName() != null ? patientCreateRequest.getName().trim() : null)
+                .surname(patientCreateRequest.getSurname() != null ? patientCreateRequest.getSurname().trim() : null)
+                .patronymic(patientCreateRequest.getPatronymic() != null ? patientCreateRequest.getPatronymic().trim() : null)
                 .finCode(finCode)
                 .dateOfBirth(patientCreateRequest.getDateOfBirth())
-                .phone(patientCreateRequest.getPhone())
+                .phone(patientCreateRequest.getPhone() != null ? patientCreateRequest.getPhone().trim() : null)
                 .email(email)
                 .enabled(true)
                 .baseUser(doctor)
-                .homePhone(patientCreateRequest.getHomePhone())
-                .workPhone(patientCreateRequest.getWorkPhone())
-                .workAddress(patientCreateRequest.getWorkAddress())
-                .homeAddress(patientCreateRequest.getHomeAddress())
+                .homePhone(StringUtils.trimToNull(patientCreateRequest.getHomePhone()))
+                .workPhone(StringUtils.trimToNull(patientCreateRequest.getWorkPhone()))
+                .workAddress(StringUtils.trimToNull(patientCreateRequest.getWorkAddress()))
+                .homeAddress(StringUtils.trimToNull(patientCreateRequest.getHomeAddress()))
                 .genderStatus(patientCreateRequest.getGenderStatus())
-                .priceCategory(priceCategoryService.findByName(patientCreateRequest.getPriceCategoryName()))
-                .specializationCategory(specializationCategoryService.findByName(patientCreateRequest.getSpecializationName()))
+                .priceCategory(priceCategory)
+                .specializationCategory(specializationCategory)
                 .registrationDate(LocalDate.now())
                 .build();
         patientRepository.save(patient);
@@ -86,54 +104,67 @@ public class PatientService {
     }
 
     private void updatePatientFromRequest(Patient patient, PatientUpdateRequest request) {
-        utilService.updateFieldIfPresent(request.getName(), patient::setName);
-        utilService.updateFieldIfPresent(request.getSurname(), patient::setSurname);
-        utilService.updateFieldIfPresent(request.getPatronymic(), patient::setPatronymic);
-        utilService.updateFieldIfPresent(request.getFinCode(), patient::setFinCode);
+        utilService.updateFieldIfPresent(request.getName() != null ? request.getName().trim() : null, patient::setName);
+        utilService.updateFieldIfPresent(request.getSurname() != null ? request.getSurname().trim() : null, patient::setSurname);
+        utilService.updateFieldIfPresent(request.getPatronymic() != null ? request.getPatronymic().trim() : null, patient::setPatronymic);
+        utilService.updateFieldIfPresent(StringUtils.trimToNull(request.getFinCode()), patient::setFinCode);
         utilService.updateFieldIfPresent(request.getGenderStatus(), patient::setGenderStatus);
         utilService.updateFieldIfPresent(request.getDateOfBirth(), patient::setDateOfBirth);
-        PriceCategory priceCategory = priceCategoryService.findByName(request.getPriceCategoryName());
-        SpecializationCategory specializationCategory = specializationCategoryService.findByName(request.getSpecializationName());
-        utilService.updateFieldIfPresent(priceCategory, patient::setPriceCategory);
-        utilService.updateFieldIfPresent(specializationCategory, patient::setSpecializationCategory);
+        
+        if (request.getPriceCategoryName() != null && !request.getPriceCategoryName().isBlank()) {
+            try {
+                PriceCategory priceCategory = priceCategoryService.findByName(request.getPriceCategoryName());
+                patient.setPriceCategory(priceCategory);
+            } catch (Exception ignored) {}
+        }
+        if (request.getSpecializationName() != null && !request.getSpecializationName().isBlank()) {
+            try {
+                SpecializationCategory specializationCategory = specializationCategoryService.findByName(request.getSpecializationName());
+                patient.setSpecializationCategory(specializationCategory);
+            } catch (Exception ignored) {}
+        }
 
-        if (request.getDoctorId() != null) {
+        if (request.getDoctorId() != null && !request.getDoctorId().isBlank()) {
             BaseUser doctor = utilService.findByBaseUserId(request.getDoctorId());
             patient.setBaseUser(doctor);
         }
 
-        utilService.updateFieldIfPresent(request.getPhone(), patient::setPhone);
-        utilService.updateFieldIfPresent(request.getWorkPhone(), patient::setWorkPhone);
-        utilService.updateFieldIfPresent(request.getHomePhone(), patient::setHomePhone);
-        utilService.updateFieldIfPresent(request.getHomeAddress(), patient::setHomeAddress);
-        utilService.updateFieldIfPresent(request.getWorkAddress(), patient::setWorkAddress);
-        utilService.updateFieldIfPresent(request.getEmail(), patient::setEmail);
+        utilService.updateFieldIfPresent(request.getPhone() != null ? request.getPhone().trim() : null, patient::setPhone);
+        utilService.updateFieldIfPresent(StringUtils.trimToNull(request.getWorkPhone()), patient::setWorkPhone);
+        utilService.updateFieldIfPresent(StringUtils.trimToNull(request.getHomePhone()), patient::setHomePhone);
+        utilService.updateFieldIfPresent(StringUtils.trimToNull(request.getHomeAddress()), patient::setHomeAddress);
+        utilService.updateFieldIfPresent(StringUtils.trimToNull(request.getWorkAddress()), patient::setWorkAddress);
+        utilService.updateFieldIfPresent(StringUtils.trimToNull(request.getEmail()), patient::setEmail);
     }
 
 
+    @Transactional(readOnly = true)
     public List<PatientReadResponse> read() {
         List<Patient> users = patientRepository.findAll();
         return patientMapper.toDtos(users);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public PatientReadResponse readById(Long id) {
         Patient patient = utilService.findByPatientId(id);
         return patientMapper.toRead(patient);
     }
 
+    @Transactional
     public String delete(Long id) {
         Patient patient = utilService.findByPatientId(id);
         patientRepository.delete(patient);
         return "Qeydiyyatdan silindi";
     }
 
+    @Transactional(readOnly = true)
     public List<PatientReadResponse> search(PatientSearchRequest patientSearchRequest) {
         List<Patient> byNameAndSurnameAndFinCodeAndGenderStatusAndPhone =
                 patientRepository.findAll(UserSpecification.filterBy(patientSearchRequest));
         return patientMapper.toDtos(byNameAndSurnameAndFinCodeAndGenderStatusAndPhone);
     }
 
+    @Transactional(readOnly = true)
     public InputStreamResource exportReservationsToExcel() {
         List<Patient> patients = patientRepository.findAll();
         var list = patients.stream().map(patientMapper::toExcelDto).toList();

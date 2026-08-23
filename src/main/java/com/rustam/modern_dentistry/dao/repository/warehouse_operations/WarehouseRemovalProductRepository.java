@@ -10,9 +10,11 @@ import java.util.Optional;
 public interface WarehouseRemovalProductRepository extends JpaRepository<WarehouseRemovalProduct,Long> , JpaSpecificationExecutor<WarehouseRemovalProduct> {
     List<WarehouseRemovalProduct> findAllByIdAndWarehouseRemovalIdAndOrderFromWarehouseProductId(Long id,Long warehouseRemovalId, Long orderFromWarehouseProductId);
 
-    List<WarehouseRemovalProduct> findAllByGroupId(String groupId);
-
     List<WarehouseRemovalProduct> findAllByIdAndGroupIdAndOrderFromWarehouseProductId(Long id, String groupId, Long orderFromWarehouseProductId);
 
+    List<WarehouseRemovalProduct> findAllByGroupId(String groupId);
+
     List<WarehouseRemovalProduct> findAllByWarehouseRemovalIdAndOrderFromWarehouseProductId(Long removalId, Long orderFromWarehouseProductId);
+
+    List<WarehouseRemovalProduct> findAllByWarehouseRemovalId(Long warehouseRemovalId);
 }

@@ -36,8 +36,13 @@ public class DeletionFromWarehouseController {
         return new ResponseEntity<>(deletionFromWarehouseService.search(deletionFromWarehouseSearchRequest),HttpStatus.OK);
     }
 
-    @PutMapping(path = "/update")
-    public ResponseEntity<DeletionFromWarehouseReadResponse> update(@RequestBody DeletionFromWarehouseUpdateRequest deletionFromWarehouseUpdateRequest){
+    @PutMapping(path = {"/update", "/update/{id}"})
+    public ResponseEntity<DeletionFromWarehouseReadResponse> update(
+            @PathVariable(required = false) Long id,
+            @RequestBody DeletionFromWarehouseUpdateRequest deletionFromWarehouseUpdateRequest){
+        if (id != null && deletionFromWarehouseUpdateRequest.getDeletionFromWarehouseId() == null) {
+            deletionFromWarehouseUpdateRequest.setDeletionFromWarehouseId(id);
+        }
         return new ResponseEntity<>(deletionFromWarehouseService.update(deletionFromWarehouseUpdateRequest),HttpStatus.OK);
     }
 

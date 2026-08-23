@@ -27,6 +27,8 @@ public interface PatientMapper {
 
     @Mapping(target = "isBlocked", expression = "java(patient.getPatientBlacklist() != null)")
     @Mapping(target = "baseUser", expression = "java(mapDoctorToString(patient.getBaseUser()))")
+    @Mapping(target = "priceCategoryName", expression = "java(patient.getPriceCategory() != null ? patient.getPriceCategory().getName() : null)")
+    @Mapping(target = "specializationCategoryName", expression = "java(patient.getSpecializationCategory() != null ? patient.getSpecializationCategory().getName() : null)")
     PatientReadResponse toRead(Patient patient);
 
     @Named("mapDoctorToString")

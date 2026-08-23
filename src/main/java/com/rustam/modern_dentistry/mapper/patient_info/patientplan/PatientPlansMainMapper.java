@@ -23,8 +23,6 @@ public interface PatientPlansMainMapper {
 
     List<PatientPlansMainResponse> toDtos(List<PatientPlanMain> all);
 
-    PatientPlanMain toReadById(PatientPlanMain patientPlanMain);
-
     List<String> toStrings(List<String> companyName);
 
     default Boolean isActionStatusA(PatientPlanMain patientPlanMain) {

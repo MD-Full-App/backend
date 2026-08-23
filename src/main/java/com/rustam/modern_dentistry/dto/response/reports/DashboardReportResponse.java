@@ -15,6 +15,7 @@ public class DashboardReportResponse {
     private BigDecimal avgTicket;
     private int paymentsCount;
     private int treatmentsCount;
+    private int invoicesCount;
     private BigDecimal totalInvoiced;
     private BigDecimal outstandingBalance;
     private int overdueInvoicesCount;

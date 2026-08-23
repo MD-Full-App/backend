@@ -69,10 +69,17 @@ public class AppointmentTypeService {
         }
     }
 
+    @jakarta.transaction.Transactional
     public void delete(Long id) {
         AppointmentType appointmentType = findById(id);
-        appointmentType.getCalendars().forEach(calendar -> calendar.getAppointmentTypes().remove(appointmentType));
-        appointmentTypeRepository.save(appointmentType);
+        if (appointmentType.getCalendars() != null) {
+            for (com.rustam.modern_dentistry.dao.entity.GeneralCalendar calendar : appointmentType.getCalendars()) {
+                if (calendar.getAppointmentTypes() != null) {
+                    calendar.getAppointmentTypes().remove(appointmentType);
+                }
+            }
+            appointmentType.getCalendars().clear();
+        }
         appointmentTypeRepository.delete(appointmentType);
     }
 

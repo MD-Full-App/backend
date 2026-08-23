@@ -26,8 +26,8 @@ public class PatientExaminations {
     @Column(name = "tooth_number")
     Long toothNumber;
 
-    @ManyToOne
-    @JoinColumn(name = "patient_id", insertable = false, updatable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "patient_id")
     Patient patient;
 
     @Column(name = "doctor_id")

@@ -45,57 +45,56 @@ public class PatientExaminationsService {
         return examinationService.read();
     }
 
-//    public PatientExaminationsCreateResponse create(PatientExaminationsCreateRequest request) {
-//        Examination examination = examinationService.findById(request.getExaminationId());
-//
-//        boolean patientHasExamination = patientExaminationsRepository
-//                .existsPatientExaminationsByPatientAndToothNumberAndDiagnosis(request.getPatientId(),request.getToothId() ,examination.getTypeName());
-//        if (patientHasExamination) {
-//            throw new ExistsException("Examination " + examination.getTypeName() +
-//                    " is already recorded for this patient.");
-//        }
-//
-//        List<TeethExamination> existingExaminations = teethService.dentalExaminationForTeethOrThrow(request.getToothNumber());
-//
-//        Map<Long, List<String>> existingExaminationsMap = existingExaminations.stream()
-//                .collect(Collectors.groupingBy(
-//                        te -> te.getTeeth().getToothNo(),
-//                        Collectors.mapping(te -> te.getExamination().getTypeName(), Collectors.toList())
-//                ));
-//
-//        boolean hasMatchingExamination = request.getToothNumber().stream()
-//                .anyMatch(toothNumber -> existingExaminationsMap
-//                        .getOrDefault(toothNumber, List.of())
-//                        .contains(examination.getTypeName()));
-//
-//        if (!hasMatchingExamination) {
-//            throw new ExistsException("Examination " + examination.getTypeName() +
-//                    " is not recorded for any of the selected teeth: " + request.getToothNumber());
-//        }
-//
-//        SelectingPatientToReadResponse patientData = generalCalendarService.findByPatientId(request.getPatientId());
-//        String currentUserId = utilService.getCurrentUserId();
-//
-//        List<PatientExaminations> patientExaminationsList = request.getToothNumber().stream()
-//                .map(toothNumber -> PatientExaminations.builder()
-//                        .patient(utilService.findByPatientId(request.getPatientId()))
-//                        .toothNumber(toothNumber)
-//                        .diagnosis(examination.getTypeName())
-//                        .doctorId(UUID.fromString(currentUserId))
-//                        .patientAppointmentDate(patientData.getDate())
-//                        .build())
-//                .collect(Collectors.toList());
-//
-//        patientExaminationsRepository.saveAll(patientExaminationsList);
-//
-//        return PatientExaminationsCreateResponse.builder()
-//                .patientId(request.getPatientId())
-//                .toothNo(request.getToothNumber())
-//                .diagnosis(examination.getTypeName())
-//                .doctorId(currentUserId)
-//                .build();
-//    }
+    @org.springframework.transaction.annotation.Transactional
+    public PatientExaminationsCreateResponse create(PatientExaminationsCreateRequest request) {
+        Patient patient = utilService.findByPatientId(request.getPatientId());
+        Examination examination = examinationService.findById(request.getExaminationId());
+        String currentUserId = utilService.getCurrentUserId();
+        UUID doctorUuid = null;
+        try {
+            if (currentUserId != null && !currentUserId.isBlank()) {
+                doctorUuid = UUID.fromString(currentUserId);
+            }
+        } catch (Exception ignored) {}
 
+        PatientExaminations pe = PatientExaminations.builder()
+                .patient(patient)
+                .toothNumber(request.getToothId())
+                .diagnosis(examination.getTypeName())
+                .doctorId(doctorUuid)
+                .patientAppointmentDate(java.time.LocalDate.now())
+                .build();
+        patientExaminationsRepository.save(pe);
+
+        return PatientExaminationsCreateResponse.builder()
+                .patientId(request.getPatientId())
+                .toothNo(List.of(request.getToothId()))
+                .diagnosis(examination.getTypeName())
+                .doctorId(currentUserId)
+                .build();
+    }
+
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public List<PatientExaminationsResponse> readByPatientId(Long patientId) {
+        List<PatientExaminations> list = patientExaminationsRepository.findByPatient_Id(patientId);
+        return list.stream().map(pe -> {
+            String doctorName = null;
+            if (pe.getDoctorId() != null) {
+                try {
+                    com.rustam.modern_dentistry.dao.entity.users.BaseUser doctor = utilService.findByBaseUserId(pe.getDoctorId().toString());
+                    if (doctor != null) {
+                        doctorName = (doctor.getName() != null ? doctor.getName() : "") + " " + (doctor.getSurname() != null ? doctor.getSurname() : "");
+                    }
+                } catch (Exception ignored) {}
+            }
+            return PatientExaminationsResponse.builder()
+                    .id(pe.getId())
+                    .toothNo(pe.getToothNumber())
+                    .diagnosis(pe.getDiagnosis())
+                    .doctorName(doctorName)
+                    .build();
+        }).toList();
+    }
 
     public PatientExaminations findById(Long id) {
         return patientExaminationsRepository.findById(id)

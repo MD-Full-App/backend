@@ -121,7 +121,12 @@ public class DeletionFromWarehouseService {
 
     private List<DeletionFromWarehouseProductResponse> buildDeletionFromWarehouseProductResponse(List<DeletionFromWarehouseProduct> deletionFromWarehouseProducts) {
         return deletionFromWarehouseProducts.stream()
-                .map(deletionFromWarehouseMapper::toResponse)
+                .map(p -> {
+                    DeletionFromWarehouseProductResponse res = deletionFromWarehouseMapper.toResponse(p);
+                    WarehouseEntryProduct entryProduct = warehouseEntryProductService.findByIdOrNull(p.getWarehouseEntryProductId());
+                    res.setAvailableQuantity(entryProduct != null ? entryProduct.getQuantity() : p.getQuantity());
+                    return res;
+                })
                 .toList();
     }
 
@@ -180,15 +185,58 @@ public class DeletionFromWarehouseService {
 
         updateMainFields(request, existing);
 
-        List<DeletionFromWarehouseProduct> updatedProducts = request.getDeletionFromWarehouseProductRequests().stream()
-                .map(this::processProductUpdate)
-                .collect(Collectors.toList());
+        if (existing.getDeletionFromWarehouseProducts() != null) {
+            existing.getDeletionFromWarehouseProducts().clear();
+        } else {
+            existing.setDeletionFromWarehouseProducts(new ArrayList<>());
+        }
 
-        existing.setNumber(updatedProducts.size());
+        List<DeletionFromWarehouseProduct> newDeletionProducts = new ArrayList<>();
+
+        if (request.getDeletionFromWarehouseProductRequests() != null) {
+            for (DeletionFromWarehouseProductRequest productRequest : request.getDeletionFromWarehouseProductRequests()) {
+                WarehouseEntryProduct entryProduct = warehouseEntryProductService
+                        .findAllByIdAndWarehouseEntryIdAndCategoryIdAndProductId(
+                                productRequest.getWarehouseEntryProductId(),
+                                productRequest.getWarehouseEntryId(),
+                                productRequest.getCategoryId(),
+                                productRequest.getProductId()
+                        );
+
+                if (entryProduct.getQuantity() < productRequest.getQuantity()) {
+                    throw new NotFoundException("Not enough stock for product: " + entryProduct.getProductName());
+                }
+
+                DeletionFromWarehouseProduct deletionProduct = DeletionFromWarehouseProduct.builder()
+                        .price(entryProduct.getPrice())
+                        .usedQuantity(entryProduct.getUsedQuantity())
+                        .productId(productRequest.getProductId())
+                        .categoryId(productRequest.getCategoryId())
+                        .quantity(productRequest.getQuantity())
+                        .warehouseEntryId(entryProduct.getWarehouseEntry().getId())
+                        .warehouseEntryProductId(entryProduct.getId())
+                        .productName(entryProduct.getProductName())
+                        .categoryName(entryProduct.getCategoryName())
+                        .productTitle(entryProduct.getProductTitle())
+                        .deletionFromWarehouse(existing)
+                        .build();
+
+                newDeletionProducts.add(deletionProduct);
+
+                if (entryProduct.getQuantity().equals(productRequest.getQuantity())) {
+                    warehouseEntryProductService.delete(entryProduct);
+                } else {
+                    entryProduct.setQuantity(entryProduct.getQuantity() - productRequest.getQuantity());
+                }
+            }
+        }
+
+        existing.getDeletionFromWarehouseProducts().addAll(newDeletionProducts);
+        existing.setNumber(newDeletionProducts.size());
         deletionFromWarehouseRepository.save(existing);
 
         List<DeletionFromWarehouseProductResponse> productResponses =
-                buildDeletionFromWarehouseProductResponse(updatedProducts);
+                buildDeletionFromWarehouseProductResponse(newDeletionProducts);
 
         return DeletionFromWarehouseReadResponse.builder()
                 .date(existing.getDate())
@@ -197,33 +245,6 @@ public class DeletionFromWarehouseService {
                 .number(existing.getNumber())
                 .deletionFromWarehouseProductResponses(productResponses)
                 .build();
-    }
-
-    private DeletionFromWarehouseProduct processProductUpdate(DeletionFromWarehouseProductRequest req) {
-        DeletionFromWarehouseProduct product = deletionFromWarehouseProductService
-                .findById(req.getDeletionFromWarehouseProductId());
-
-        WarehouseEntryProduct entry = warehouseEntryProductService
-                .findAllByIdAndWarehouseEntryIdAndCategoryIdAndProductId(
-                        req.getWarehouseEntryProductId(),
-                        req.getWarehouseEntryId(),
-                        req.getCategoryId(),
-                        req.getProductId()
-                );
-
-        if (entry.getQuantity() < req.getQuantity()) {
-            throw new NotFoundException("Not enough stock for product: " + entry.getProductName());
-        }
-
-        updateProductFields(req, product, entry);
-
-        if (entry.getQuantity().equals(req.getQuantity())) {
-            warehouseEntryProductService.delete(entry);
-        } else {
-            entry.setQuantity(entry.getQuantity() - req.getQuantity());
-        }
-
-        return product;
     }
 
 

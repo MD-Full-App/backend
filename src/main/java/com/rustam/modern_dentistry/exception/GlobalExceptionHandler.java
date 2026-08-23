@@ -196,29 +196,46 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<?> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
+        Map<String, Object> response = new HashMap<>();
         Map<String, String> errors = new HashMap<>();
+        StringBuilder combinedMessage = new StringBuilder();
+
         ex.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
+            if (combinedMessage.length() > 0) {
+                combinedMessage.append(". ");
+            }
+            combinedMessage.append(errorMessage);
         });
-        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+
+        response.put("errors", errors);
+        response.put("message", combinedMessage.toString());
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
-    // Learn:
-    //  It is typically thrown when there are constraint violations during the validation of entities or objects, usually when using annotations like @NotNull, @Size, @Email, etc., on fields or properties of a Java class.
-    //  This exception can occur when validating entities outside the context of Spring MVC, for example, in a JPA (Java Persistence API) environment.
-    //  If you try to persist a User object with a null username using JPA, a ConstraintViolationException may be thrown
+
     @ExceptionHandler(value = ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
     public ResponseEntity<?> handleConstraintViolationException(ConstraintViolationException ex) {
         Set<ConstraintViolation<?>> violations = ex.getConstraintViolations();
+        Map<String, Object> response = new HashMap<>();
         Map<String, String> errors = new HashMap<>();
+        StringBuilder combinedMessage = new StringBuilder();
+
         for (ConstraintViolation<?> violation : violations) {
             String fieldName = violation.getPropertyPath().toString();
             String errorMessage = violation.getMessage();
             errors.put(fieldName, errorMessage);
+            if (combinedMessage.length() > 0) {
+                combinedMessage.append(". ");
+            }
+            combinedMessage.append(errorMessage);
         }
-        return new ResponseEntity<>(errors, HttpStatus.UNPROCESSABLE_ENTITY);
+
+        response.put("errors", errors);
+        response.put("message", combinedMessage.toString());
+        return new ResponseEntity<>(response, HttpStatus.UNPROCESSABLE_ENTITY);
     }
     @ExceptionHandler(org.springframework.web.HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ExceptionResponseMessages> handleMethodNotSupported(org.springframework.web.HttpRequestMethodNotSupportedException ex) {

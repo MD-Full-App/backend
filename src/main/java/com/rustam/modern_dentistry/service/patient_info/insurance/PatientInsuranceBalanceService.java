@@ -35,17 +35,24 @@ public class PatientInsuranceBalanceService {
         checkDate(request.getDate(), request.getPatientInsuranceId());
         var patientInsurance = patientInsuranceService.getPatientInsuranceById(request.getPatientInsuranceId());
         var entity = patientInsuranceBalanceMapper.toEntity(request);
-        var newFileName = fileService.getNewFileName(file, "insurance_balance_");
-        fileService.checkFileIfExist(file);
-        fileService.writeFile(file, pathPatInsuranceBalance, newFileName);
+        if (file != null && !file.isEmpty()) {
+            var newFileName = fileService.getNewFileName(file, "insurance_balance_");
+            fileService.checkFileIfExist(file);
+            fileService.writeFile(file, pathPatInsuranceBalance, newFileName);
+            entity.setFileName(newFileName);
+        }
         entity.setPatientInsurance(patientInsurance);
-        entity.setFileName(newFileName);
 
         patientInsuranceBalanceRepository.save(entity);
     }
 
     public List<PatInsuranceBalanceReadResponse> read(Long patientInsuranceId) {
-        var patientInsurances = patientInsuranceBalanceRepository.findAllByPatientInsurance_Id(patientInsuranceId);
+        List<PatientInsuranceBalance> patientInsurances;
+        if (patientInsuranceId != null) {
+            patientInsurances = patientInsuranceBalanceRepository.findAllByPatientInsurance_Id(patientInsuranceId);
+        } else {
+            patientInsurances = patientInsuranceBalanceRepository.findAll();
+        }
         return patientInsurances.stream()
                 .map(patientInsuranceBalanceMapper::toReadDto)
                 .toList();
@@ -54,7 +61,9 @@ public class PatientInsuranceBalanceService {
     public PatInsuranceBalanceReadResponse readById(Long id) {
         var patientInsurance = getPatientInsurance(id);
         var response = patientInsuranceBalanceMapper.toReadDto(patientInsurance);
-        response.setUrl(getUrl(pathPatInsuranceBalance, patientInsurance.getFileName()));
+        if (patientInsurance.getFileName() != null) {
+            response.setUrl(getUrl(pathPatInsuranceBalance, patientInsurance.getFileName()));
+        }
         return response;
     }
 
@@ -63,8 +72,11 @@ public class PatientInsuranceBalanceService {
         var patientInsurance = getPatientInsurance(id);
         if (!patientInsurance.getDate().equals(request.getDate()))
             checkDate(request.getDate(), request.getPatientInsuranceId());
-        var newFileName = fileService.getNewFileName(file, "insurance_balance_");
-        fileService.updateFile(file, pathPatInsuranceBalance, patientInsurance.getFileName(), newFileName);
+        String newFileName = patientInsurance.getFileName();
+        if (file != null && !file.isEmpty()) {
+            newFileName = fileService.getNewFileName(file, "insurance_balance_");
+            fileService.updateFile(file, pathPatInsuranceBalance, patientInsurance.getFileName(), newFileName);
+        }
         patientInsuranceBalanceMapper.update(patientInsurance, request, newFileName);
         patientInsuranceBalanceRepository.save(patientInsurance);
     }

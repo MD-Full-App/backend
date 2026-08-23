@@ -25,6 +25,8 @@ public class OrderFromWarehouseUpdateRequest {
 
     String cabinetName;
 
+    String personWhoPlacedOrder;
+
     List<OrderFromWarehouseProductUpdateRequest> orderFromWarehouseProductUpdateRequests;
 
     String description;

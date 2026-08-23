@@ -25,4 +25,6 @@ public class DeletionFromWarehouseProductResponse {
     Long productId;
 
     Long quantity;
+
+    Long availableQuantity;
 }

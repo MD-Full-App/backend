@@ -17,4 +17,7 @@ public class OutOfTheWarehouseDto {
     Long orderQuantity;
     Long remainingQuantity;
     Long currentAmount;
+    Long orderFromWarehouseProductId;
+    Long id;
+    java.math.BigDecimal price;
 }

@@ -20,4 +20,12 @@ public class WarehouseRemovalProductReadResponse {
     LocalTime time;
     Integer number;
     PendingStatus pendingStatus;
+    String groupId;
+
+    Long categoryId;
+    String categoryName;
+    Long productId;
+    String productName;
+    String idNumber;
+    Long quantity;
 }

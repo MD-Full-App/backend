@@ -36,4 +36,15 @@ public class WarehouseRemovalController {
     public ResponseEntity<WarehouseRemovalReadResponse> info(@PathVariable Long id){
         return new ResponseEntity<>(warehouseRemovalService.info(id),HttpStatus.OK);
     }
+
+    @PutMapping(path = "/update/{id}")
+    public ResponseEntity<WarehouseRemovalReadResponse> update(@PathVariable Long id, @RequestBody com.rustam.modern_dentistry.dto.request.update.WarehouseRemovalProductUpdateRequest request){
+        return new ResponseEntity<>(warehouseRemovalService.update(id, request), HttpStatus.OK);
+    }
+
+    @DeleteMapping(path = "/delete/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id){
+        warehouseRemovalService.delete(id);
+        return ResponseEntity.ok().build();
+    }
 }
