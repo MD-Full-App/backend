@@ -4,8 +4,10 @@ spring:
     username: postgres
     password: "012345"
     driver-class-name: org.postgresql.Driver
-    # JPA properties
+  jpa:
+    show-sql: false
   data:
     redis:
       host: redis-server
       port: 6379
+

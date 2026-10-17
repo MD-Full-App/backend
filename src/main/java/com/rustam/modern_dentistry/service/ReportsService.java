@@ -501,24 +501,31 @@ public class ReportsService {
 
         LocalDate now = LocalDate.now();
         long start;
-        long end = now.atTime(23, 59, 59, 999_999_999).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        long end;
 
         switch (period != null ? period.toLowerCase() : "bu_ay") {
             case "all":
                 start = Instant.EPOCH.toEpochMilli();
+                end = now.plusYears(50).atTime(23, 59, 59, 999_999_999).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
                 break;
             case "bu_hefte":
                 LocalDate monday = now.with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
+                LocalDate sunday = now.with(java.time.temporal.TemporalAdjusters.nextOrSame(java.time.DayOfWeek.SUNDAY));
                 start = monday.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli();
+                end = sunday.atTime(23, 59, 59, 999_999_999).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
                 break;
             case "bu_il":
                 LocalDate firstDayOfYear = now.with(java.time.temporal.TemporalAdjusters.firstDayOfYear());
+                LocalDate lastDayOfYear = now.with(java.time.temporal.TemporalAdjusters.lastDayOfYear());
                 start = firstDayOfYear.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli();
+                end = lastDayOfYear.atTime(23, 59, 59, 999_999_999).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
                 break;
             case "bu_ay":
             default:
                 LocalDate firstDayOfMonth = now.with(java.time.temporal.TemporalAdjusters.firstDayOfMonth());
+                LocalDate lastDayOfMonth = now.with(java.time.temporal.TemporalAdjusters.lastDayOfMonth());
                 start = firstDayOfMonth.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli();
+                end = lastDayOfMonth.atTime(23, 59, 59, 999_999_999).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
                 break;
         }
 

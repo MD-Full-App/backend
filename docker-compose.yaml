@@ -2,6 +2,7 @@ services:
   postgres-db:
     image: postgres:latest
     container_name: postgres-db
+    restart: always
     environment:
       POSTGRES_DB: modern_dentistry
       POSTGRES_USER: postgres
@@ -14,10 +15,12 @@ services:
       - modern-net
 
   redis-server:
-    image: redis:latest
+    image: redis:alpine
     container_name: redis-server
+    restart: always
+    command: redis-server --save "" --appendonly no --stop-writes-on-bgsave-error no
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     networks:
       - modern-net
 
@@ -26,11 +29,13 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: modern-dentistry
+    restart: always
     depends_on:
       - postgres-db
       - redis-server
     environment:
       SPRING_PROFILES_ACTIVE: prod
+      JAVA_OPTS: "-XX:+UseG1GC -XX:+UseStringDeduplication -Xms512m -Xmx1536m -XX:MaxGCPauseMillis=200 -Djava.security.egd=file:/dev/./urandom"
     ports:
       - "5555:5555"
     volumes:
@@ -39,7 +44,7 @@ services:
       - modern-net
 
   nginx:
-    image: nginx:latest
+    image: nginx:alpine
     container_name: nginx-proxy
     restart: always
     ports:
@@ -47,6 +52,7 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - /home/media:/home/media:ro
+      - /var/www/frontend:/var/www/frontend:ro
     depends_on:
       - modern-dentistry
     networks:

@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
@@ -34,8 +36,12 @@ public class AuthService {
         }
         UserDetails userDetails = userDetailsService.loadUserByUsername(baseUser.getId());
         TokenPair tokenPair = utilService.tokenProvider(baseUser.getId(), userDetails);
-        String redisKey = "refresh_token:" + baseUser.getId();
-        redisTemplate.opsForValue().set(redisKey, tokenPair.getRefreshToken(), Duration.ofDays(2)); // 2 gün müddətinə saxla
+        try {
+            String redisKey = "refresh_token:" + baseUser.getId();
+            redisTemplate.opsForValue().set(redisKey, tokenPair.getRefreshToken(), Duration.ofDays(2)); // 2 gün müddətinə saxla
+        } catch (Exception e) {
+            log.error("Failed to store refresh token in Redis for user {}: {}", baseUser.getId(), e.getMessage());
+        }
         return AuthResponse.builder()
                 .tokenPair(tokenPair)
                 .build();
